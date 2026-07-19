@@ -1,0 +1,44 @@
+# ===============================
+# PRODUCTION PROFILE (template)
+# ===============================
+# Copy this file to `application-prod.properties` for local experimentation
+# only. In real deployments (Render, etc.) set these as environment
+# variables instead — never commit real credentials.
+#
+# Activate this profile with:
+#   SPRING_PROFILES_ACTIVE=prod
+#
+# Every property below can be overridden by the equivalent environment
+# variable (Spring's relaxed binding), e.g. SPRING_DATASOURCE_URL.
+
+# ===============================
+# DATASOURCE (PostgreSQL)
+# ===============================
+spring.datasource.url=jdbc:postgresql://HOST:5432/DBNAME
+spring.datasource.username=CHANGE_ME
+spring.datasource.password=CHANGE_ME
+spring.datasource.driverClassName=org.postgresql.Driver
+
+# ===============================
+# JPA / HIBERNATE
+# ===============================
+# Never let Hibernate manage the schema in production.
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.show-sql=false
+spring.jpa.open-in-view=false
+
+# ===============================
+# H2 CONSOLE — must stay disabled in production
+# ===============================
+spring.h2.console.enabled=false
+
+# ===============================
+# CORS
+# ===============================
+cors.allowed-origins=https://dozenflow.netlify.app
+
+# ===============================
+# ACTUATOR
+# ===============================
+management.endpoints.web.exposure.include=health
+management.endpoint.health.show-details=never
