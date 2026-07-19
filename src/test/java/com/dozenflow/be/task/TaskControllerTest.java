@@ -53,6 +53,32 @@ class TaskControllerTest {
     }
 
     @Test
+    void createTask_persistsAndReturnsDueDate_whenProvided() throws Exception {
+        String payload = """
+                {"title":"Plan release","description":"","status":"A_FAZER","taskOrder":0,"dueDate":"2026-08-01"}
+                """;
+
+        mockMvc.perform(post("/api/tasks")
+                        .contentType("application/json")
+                        .content(payload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.dueDate").value("2026-08-01"));
+    }
+
+    @Test
+    void createTask_returnsNullDueDate_whenOmitted() throws Exception {
+        String payload = """
+                {"title":"No due date","description":"","status":"A_FAZER","taskOrder":0}
+                """;
+
+        mockMvc.perform(post("/api/tasks")
+                        .contentType("application/json")
+                        .content(payload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.dueDate").value(org.hamcrest.Matchers.nullValue()));
+    }
+
+    @Test
     void createTask_returnsBadRequest_whenTitleIsBlank() throws Exception {
         String payload = """
                 {"title":"","description":"No title","status":"A_FAZER","taskOrder":1}

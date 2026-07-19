@@ -8,6 +8,10 @@ e este projeto adere a [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ## [Unreleased]
 
 ### Added
+- Campo opcional `dueDate` (data de vencimento) em `Task`, exposto em
+  `POST/PUT /api/tasks` e nas respostas da API (`V2__add_due_date.sql`).
+  Primeiro de uma série de recursos novos de card estilo Trello (labels,
+  checklist, comentários e anexos vêm nas próximas migrações).
 - Migrações de schema via Flyway (`src/main/resources/db/migration`),
   substituindo `ddl-auto` autogerado pelo Hibernate como fonte de verdade
   do banco (agora só valida). `V1__baseline.sql` reproduz o schema atual

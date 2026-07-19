@@ -6,6 +6,8 @@ import com.dozenflow.be.task.dto.TaskRequestDTO;
 import com.dozenflow.be.task.dto.TaskResponseDTO;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TaskMapperTest {
@@ -14,7 +16,8 @@ class TaskMapperTest {
 
     @Test
     void toEntity_mapsAllFieldsFromRequestDto() {
-        TaskRequestDTO dto = new TaskRequestDTO("Title", "Description", TaskStatus.EM_ANDAMENTO, 2);
+        LocalDate dueDate = LocalDate.of(2026, 8, 1);
+        TaskRequestDTO dto = new TaskRequestDTO("Title", "Description", TaskStatus.EM_ANDAMENTO, 2, dueDate);
 
         Task task = mapper.toEntity(dto);
 
@@ -23,16 +26,19 @@ class TaskMapperTest {
         assertThat(task.getDescription()).isEqualTo("Description");
         assertThat(task.getStatus()).isEqualTo(TaskStatus.EM_ANDAMENTO);
         assertThat(task.getTaskOrder()).isEqualTo(2);
+        assertThat(task.getDueDate()).isEqualTo(dueDate);
     }
 
     @Test
     void toResponseDTO_mapsAllFieldsFromEntity() {
+        LocalDate dueDate = LocalDate.of(2026, 8, 1);
         Task task = new Task();
         task.setId(10L);
         task.setTitle("Title");
         task.setDescription("Description");
         task.setStatus(TaskStatus.CONCLUIDA);
         task.setTaskOrder(5);
+        task.setDueDate(dueDate);
 
         TaskResponseDTO dto = mapper.toResponseDTO(task);
 
@@ -41,5 +47,6 @@ class TaskMapperTest {
         assertThat(dto.description()).isEqualTo("Description");
         assertThat(dto.status()).isEqualTo(TaskStatus.CONCLUIDA);
         assertThat(dto.taskOrder()).isEqualTo(5);
+        assertThat(dto.dueDate()).isEqualTo(dueDate);
     }
 }

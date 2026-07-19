@@ -14,13 +14,14 @@ public class TaskMapper {
         task.setDescription(dto.description());
         task.setStatus(dto.status());
         task.setTaskOrder(dto.taskOrder());
+        task.setDueDate(dto.dueDate());
         return task;
     }
 
     public TaskResponseDTO toResponseDTO(Task entity) {
         return new TaskResponseDTO(
                 entity.getId(), entity.getTitle(), entity.getDescription(),
-                entity.getStatus(), entity.getTaskOrder()
+                entity.getStatus(), entity.getTaskOrder(), entity.getDueDate()
         );
     }
 }

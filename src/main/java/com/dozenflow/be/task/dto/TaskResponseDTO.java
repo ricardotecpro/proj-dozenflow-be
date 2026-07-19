@@ -3,6 +3,8 @@ package com.dozenflow.be.task.dto;
 import com.dozenflow.be.task.TaskStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.time.LocalDate;
+
 @Schema(description = "Data Transfer Object for representing a task in API responses")
 public record TaskResponseDTO(
         @Schema(description = "The unique identifier of the task", example = "1")
@@ -14,5 +16,7 @@ public record TaskResponseDTO(
         @Schema(description = "The current status of the task", example = "A_FAZER")
         TaskStatus status,
         @Schema(description = "The vertical order of the task within its status column", example = "1")
-        int taskOrder
+        int taskOrder,
+        @Schema(description = "Optional due date for the task", example = "2026-08-01")
+        LocalDate dueDate
 ) {}

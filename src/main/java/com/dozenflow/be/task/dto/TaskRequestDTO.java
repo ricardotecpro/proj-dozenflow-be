@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.LocalDate;
+
 @Schema(description = "Data Transfer Object for creating or updating a task")
 public record TaskRequestDTO(
         @NotBlank(message = "Title cannot be blank")
@@ -17,5 +19,7 @@ public record TaskRequestDTO(
         TaskStatus status,
         @NotNull(message = "Task order cannot be null")
         @Schema(description = "The vertical order of the task within its status column", example = "1")
-        int taskOrder
+        int taskOrder,
+        @Schema(description = "Optional due date for the task", example = "2026-08-01")
+        LocalDate dueDate
 ) {}

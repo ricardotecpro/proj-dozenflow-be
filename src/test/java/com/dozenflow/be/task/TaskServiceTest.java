@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,7 +61,8 @@ class TaskServiceTest {
         existing.setStatus(TaskStatus.A_FAZER);
         existing.setTaskOrder(0);
 
-        TaskRequestDTO dto = new TaskRequestDTO("New title", "New description", TaskStatus.CONCLUIDA, 3);
+        LocalDate dueDate = LocalDate.of(2026, 8, 1);
+        TaskRequestDTO dto = new TaskRequestDTO("New title", "New description", TaskStatus.CONCLUIDA, 3, dueDate);
 
         when(taskRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -71,11 +73,12 @@ class TaskServiceTest {
         assertThat(result.getDescription()).isEqualTo("New description");
         assertThat(result.getStatus()).isEqualTo(TaskStatus.CONCLUIDA);
         assertThat(result.getTaskOrder()).isEqualTo(3);
+        assertThat(result.getDueDate()).isEqualTo(dueDate);
     }
 
     @Test
     void update_throwsEntityNotFoundException_whenTaskDoesNotExist() {
-        TaskRequestDTO dto = new TaskRequestDTO("Title", "Description", TaskStatus.A_FAZER, 0);
+        TaskRequestDTO dto = new TaskRequestDTO("Title", "Description", TaskStatus.A_FAZER, 0, null);
         when(taskRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> taskService.update(99L, dto))
