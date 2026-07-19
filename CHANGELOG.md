@@ -8,6 +8,12 @@ e este projeto adere a [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ## [Unreleased]
 
 ### Added
+- Comentários nas tarefas: adicionar/listar/excluir comentários por tarefa
+  via `/api/tasks/{taskId}/comments` (`V5__create_comments.sql`). Sem
+  edição (só criar e excluir) e sem dono/autor — consistente com o modelo
+  sem autenticação do projeto, qualquer pessoa pode excluir qualquer
+  comentário. `TaskResponseDTO` ganha `commentCount`, mesma estratégia de
+  fetch `EAGER`+`SUBSELECT` das labels/checklist.
 - Checklist nas tarefas: itens de checklist (título + concluído/pendente)
   por tarefa via `/api/tasks/{taskId}/checklist-items`
   (`GET/POST` na coleção, `PUT/DELETE` por item — `V4__create_checklist_items.sql`).

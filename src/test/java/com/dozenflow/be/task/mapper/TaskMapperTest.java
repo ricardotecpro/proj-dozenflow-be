@@ -1,6 +1,7 @@
 package com.dozenflow.be.task.mapper;
 
 import com.dozenflow.be.checklist.ChecklistItem;
+import com.dozenflow.be.comment.Comment;
 import com.dozenflow.be.label.Label;
 import com.dozenflow.be.label.mapper.LabelMapper;
 import com.dozenflow.be.task.Task;
@@ -54,6 +55,26 @@ class TaskMapperTest {
         assertThat(dto.labels()).isEmpty();
         assertThat(dto.checklistTotal()).isZero();
         assertThat(dto.checklistDone()).isZero();
+        assertThat(dto.commentCount()).isZero();
+    }
+
+    @Test
+    void toResponseDTO_computesCommentCountFromComments() {
+        Task task = new Task();
+        task.setId(10L);
+        task.setTitle("Title");
+        task.setStatus(TaskStatus.A_FAZER);
+
+        Comment first = new Comment();
+        first.setBody("First");
+        Comment second = new Comment();
+        second.setBody("Second");
+        task.getComments().add(first);
+        task.getComments().add(second);
+
+        TaskResponseDTO dto = mapper.toResponseDTO(task);
+
+        assertThat(dto.commentCount()).isEqualTo(2);
     }
 
     @Test

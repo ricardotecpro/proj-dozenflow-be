@@ -42,7 +42,7 @@ public class TaskMapper {
         return new TaskResponseDTO(
                 entity.getId(), entity.getTitle(), entity.getDescription(),
                 entity.getStatus(), entity.getTaskOrder(), entity.getDueDate(), labels,
-                checklistTotal, checklistDone
+                checklistTotal, checklistDone, entity.getComments().size()
         );
     }
 }

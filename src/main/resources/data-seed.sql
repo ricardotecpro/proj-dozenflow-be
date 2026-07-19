@@ -2,8 +2,7 @@
 -- the `seed` profile is active (see application-seed.properties) — never
 -- runs during tests or a plain `dev` boot, so it can't interfere with
 -- TaskControllerTest#getAllTasks_returnsEmptyList_whenNoTasksExist.
--- Extend this file as new tables (comments, attachments) are added in
--- later phases.
+-- Extend this file as new tables (attachments) are added in later phases.
 --
 -- due_date uses relative offsets from CURRENT_DATE so the seed always
 -- exercises overdue (past), due-soon (next 2 days) and future states,
@@ -45,3 +44,8 @@ INSERT INTO checklist_items (task_id, title, done, item_order) VALUES
     (9, 'Backup do banco antigo', TRUE, 0),
     (9, 'Rodar migração', TRUE, 1),
     (9, 'Validar integridade dos dados', TRUE, 2);
+
+INSERT INTO comments (task_id, body, created_at) VALUES
+    (1, 'Cliente pediu pra priorizar isso — combinei entrega até sexta.', DATEADD('DAY', -1, CURRENT_TIMESTAMP)),
+    (3, 'Cenário de sucesso já está passando localmente.', DATEADD('HOUR', -3, CURRENT_TIMESTAMP)),
+    (3, 'Faltam os cenários de erro ainda.', DATEADD('HOUR', -1, CURRENT_TIMESTAMP));

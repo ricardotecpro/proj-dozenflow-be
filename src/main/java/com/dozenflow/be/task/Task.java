@@ -1,6 +1,7 @@
 package com.dozenflow.be.task;
 
 import com.dozenflow.be.checklist.ChecklistItem;
+import com.dozenflow.be.comment.Comment;
 import com.dozenflow.be.label.Label;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -66,5 +67,14 @@ public class Task {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private List<ChecklistItem> checklistItems = new ArrayList<>();
+
+    // Read-only from Task's side, same reasoning as checklistItems above:
+    // comments are managed through CommentService, this collection only
+    // exists so TaskMapper can compute commentCount.
+    @OneToMany(mappedBy = "task", fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SUBSELECT)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private List<Comment> comments = new ArrayList<>();
 
 }

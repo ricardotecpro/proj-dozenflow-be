@@ -26,5 +26,7 @@ public record TaskResponseDTO(
         @Schema(description = "Total number of checklist items", example = "5")
         int checklistTotal,
         @Schema(description = "Number of checked-off checklist items", example = "2")
-        int checklistDone
+        int checklistDone,
+        @Schema(description = "Total number of comments on this task", example = "3")
+        int commentCount
 ) {}
