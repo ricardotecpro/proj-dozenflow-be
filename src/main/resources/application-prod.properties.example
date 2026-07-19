@@ -35,7 +35,8 @@ spring.h2.console.enabled=false
 # ===============================
 # CORS
 # ===============================
-cors.allowed-origins=https://dozenflow.netlify.app
+# Includes the Netlify deploy-preview/branch-preview wildcard subdomain.
+cors.allowed-origins=https://dozenflow.netlify.app,https://*--dozenflow.netlify.app
 
 # ===============================
 # ACTUATOR

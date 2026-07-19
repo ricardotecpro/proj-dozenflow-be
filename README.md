@@ -45,7 +45,7 @@ expõe o H2 console. Configure as variáveis de ambiente abaixo (veja também
 | `SPRING_DATASOURCE_URL` | URL JDBC do PostgreSQL |
 | `SPRING_DATASOURCE_USERNAME` | usuário do banco |
 | `SPRING_DATASOURCE_PASSWORD` | senha do banco |
-| `CORS_ALLOWED_ORIGINS` | origens permitidas (ex.: `https://dozenflow.netlify.app`) |
+| `CORS_ALLOWED_ORIGINS` | padrões de origem permitidos, separados por vírgula (aceita `*`, ex.: `https://dozenflow.netlify.app,https://*--dozenflow.netlify.app` — o segundo padrão cobre os deploy previews do Netlify) |
 
 Nunca commite um `application-prod.properties` com segredos reais — o
 `.gitignore` já bloqueia esse arquivo intencionalmente.

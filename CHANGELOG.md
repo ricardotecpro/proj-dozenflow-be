@@ -28,6 +28,11 @@ e este projeto adere a [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - `OpenApiConfig` agora referencia a licença MIT do projeto (antes citava
   Apache 2.0 incorretamente).
 - `pom.xml`: preenchidos `license`, `developers` e `scm`.
+- CORS (`WebConfig`) migrado de `allowedOrigins` para `allowedOriginPatterns`,
+  permitindo um padrão com curinga (`https://*--dozenflow.netlify.app`) que
+  cobre os deploy previews e branch previews do Netlify, além da origem de
+  produção. Validado manualmente com requisições OPTIONS simulando preview,
+  produção e uma origem não relacionada.
 
 ### Fixed
 - `TUTORIAL-BACKEND.md` corrigido: mencionava MySQL como banco de produção,

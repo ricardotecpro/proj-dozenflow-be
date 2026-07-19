@@ -14,7 +14,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**") // Aplica a política apenas aos endpoints da API
-                .allowedOrigins(allowedOrigins.split(",")) // Permite múltiplas origens
+                // allowedOriginPatterns (em vez de allowedOrigins) permite usar "*" em
+                // parte da origem — necessário para os deploy previews do Netlify
+                // (ex.: https://deploy-preview-12--dozenflow.netlify.app), que têm um
+                // subdomínio diferente a cada PR/branch. Continua compatível com
+                // allowCredentials(true) porque nenhum padrão é um "*" literal sozinho.
+                .allowedOriginPatterns(allowedOrigins.split(",")) // Permite múltiplas origens
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
