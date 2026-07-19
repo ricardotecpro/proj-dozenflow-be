@@ -22,5 +22,9 @@ public record TaskResponseDTO(
         @Schema(description = "Optional due date for the task", example = "2026-08-01")
         LocalDate dueDate,
         @Schema(description = "Labels attached to this task")
-        List<LabelResponseDTO> labels
+        List<LabelResponseDTO> labels,
+        @Schema(description = "Total number of checklist items", example = "5")
+        int checklistTotal,
+        @Schema(description = "Number of checked-off checklist items", example = "2")
+        int checklistDone
 ) {}

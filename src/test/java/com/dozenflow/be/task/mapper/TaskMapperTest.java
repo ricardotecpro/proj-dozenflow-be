@@ -1,5 +1,6 @@
 package com.dozenflow.be.task.mapper;
 
+import com.dozenflow.be.checklist.ChecklistItem;
 import com.dozenflow.be.label.Label;
 import com.dozenflow.be.label.mapper.LabelMapper;
 import com.dozenflow.be.task.Task;
@@ -51,6 +52,30 @@ class TaskMapperTest {
         assertThat(dto.taskOrder()).isEqualTo(5);
         assertThat(dto.dueDate()).isEqualTo(dueDate);
         assertThat(dto.labels()).isEmpty();
+        assertThat(dto.checklistTotal()).isZero();
+        assertThat(dto.checklistDone()).isZero();
+    }
+
+    @Test
+    void toResponseDTO_computesChecklistTotalsFromItems() {
+        Task task = new Task();
+        task.setId(10L);
+        task.setTitle("Title");
+        task.setStatus(TaskStatus.A_FAZER);
+
+        ChecklistItem done = new ChecklistItem();
+        done.setTitle("Done item");
+        done.setDone(true);
+        ChecklistItem pending = new ChecklistItem();
+        pending.setTitle("Pending item");
+        pending.setDone(false);
+        task.getChecklistItems().add(done);
+        task.getChecklistItems().add(pending);
+
+        TaskResponseDTO dto = mapper.toResponseDTO(task);
+
+        assertThat(dto.checklistTotal()).isEqualTo(2);
+        assertThat(dto.checklistDone()).isEqualTo(1);
     }
 
     @Test

@@ -8,6 +8,13 @@ e este projeto adere a [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ## [Unreleased]
 
 ### Added
+- Checklist nas tarefas: itens de checklist (título + concluído/pendente)
+  por tarefa via `/api/tasks/{taskId}/checklist-items`
+  (`GET/POST` na coleção, `PUT/DELETE` por item — `V4__create_checklist_items.sql`).
+  `TaskResponseDTO` ganha `checklistTotal`/`checklistDone` (contagem, não a
+  lista completa — a lista cheia só é buscada quando o diálogo da tarefa
+  abre, evitando overfetch na visão do board). Mesma estratégia de fetch
+  `EAGER`+`SUBSELECT` das labels, pelo mesmo motivo (`open-in-view=false`).
 - Labels coloridas nas tarefas: catálogo de labels do board
   (`GET/POST /api/labels`, `PUT/DELETE /api/labels/{id}`) com a paleta
   clássica do Trello pré-populada (`V3__create_labels.sql`), e associação

@@ -1,8 +1,12 @@
 package com.dozenflow.be.task;
 
+import com.dozenflow.be.checklist.ChecklistItem;
+import com.dozenflow.be.checklist.ChecklistItemRepository;
 import com.dozenflow.be.label.Label;
 import com.dozenflow.be.label.LabelRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -30,6 +34,12 @@ class TaskControllerTest {
 
     @Autowired
     private LabelRepository labelRepository;
+
+    @Autowired
+    private ChecklistItemRepository checklistItemRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Test
     void getAllTasks_returnsEmptyList_whenNoTasksExist() throws Exception {
@@ -192,5 +202,38 @@ class TaskControllerTest {
         mockMvc.perform(delete("/api/tasks/{id}/labels/{labelId}", task.getId(), label.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.labels", hasSize(0)));
+    }
+
+    @Test
+    void getTask_includesChecklistTotalsFromRelatedItems() throws Exception {
+        Task task = new Task();
+        task.setTitle("Task with checklist");
+        task.setStatus(TaskStatus.A_FAZER);
+        task = taskRepository.save(task);
+
+        ChecklistItem done = new ChecklistItem();
+        done.setTask(task);
+        done.setTitle("Done item");
+        done.setDone(true);
+        checklistItemRepository.save(done);
+
+        ChecklistItem pending = new ChecklistItem();
+        pending.setTask(task);
+        pending.setTitle("Pending item");
+        pending.setDone(false);
+        checklistItemRepository.save(pending);
+
+        // Force a re-read from the DB: the `task` instance above is still
+        // managed in this test's persistence context with its EAGER
+        // checklistItems collection already resolved (empty, from before
+        // the items existed) — without this, the identity map would hand
+        // that stale instance back out instead of re-fetching it.
+        entityManager.flush();
+        entityManager.clear();
+
+        mockMvc.perform(get("/api/tasks"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].checklistTotal").value(2))
+                .andExpect(jsonPath("$[0].checklistDone").value(1));
     }
 }

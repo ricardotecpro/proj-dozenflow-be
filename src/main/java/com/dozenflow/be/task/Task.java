@@ -1,5 +1,6 @@
 package com.dozenflow.be.task;
 
+import com.dozenflow.be.checklist.ChecklistItem;
 import com.dozenflow.be.label.Label;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -9,7 +10,9 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -51,5 +54,17 @@ public class Task {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Set<Label> labels = new LinkedHashSet<>();
+
+    // Read-only from Task's side: checklist items are created/updated/deleted
+    // through ChecklistItemService directly (each sets its own `task`
+    // reference), not via this collection. It only exists here so TaskMapper
+    // can compute checklistTotal/checklistDone without a separate query.
+    // Same EAGER + SUBSELECT reasoning as `labels` above.
+    @OneToMany(mappedBy = "task", fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SUBSELECT)
+    @OrderBy("itemOrder ASC")
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private List<ChecklistItem> checklistItems = new ArrayList<>();
 
 }

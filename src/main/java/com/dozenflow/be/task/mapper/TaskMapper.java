@@ -1,5 +1,6 @@
 package com.dozenflow.be.task.mapper;
 
+import com.dozenflow.be.checklist.ChecklistItem;
 import com.dozenflow.be.label.dto.LabelResponseDTO;
 import com.dozenflow.be.label.mapper.LabelMapper;
 import com.dozenflow.be.task.Task;
@@ -35,9 +36,13 @@ public class TaskMapper {
                 .sorted(Comparator.comparing(LabelResponseDTO::id))
                 .toList();
 
+        int checklistTotal = entity.getChecklistItems().size();
+        int checklistDone = (int) entity.getChecklistItems().stream().filter(ChecklistItem::isDone).count();
+
         return new TaskResponseDTO(
                 entity.getId(), entity.getTitle(), entity.getDescription(),
-                entity.getStatus(), entity.getTaskOrder(), entity.getDueDate(), labels
+                entity.getStatus(), entity.getTaskOrder(), entity.getDueDate(), labels,
+                checklistTotal, checklistDone
         );
     }
 }

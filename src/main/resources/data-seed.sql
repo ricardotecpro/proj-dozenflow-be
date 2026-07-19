@@ -2,8 +2,8 @@
 -- the `seed` profile is active (see application-seed.properties) — never
 -- runs during tests or a plain `dev` boot, so it can't interfere with
 -- TaskControllerTest#getAllTasks_returnsEmptyList_whenNoTasksExist.
--- Extend this file as new tables (checklist_items, comments, attachments)
--- are added in later phases.
+-- Extend this file as new tables (comments, attachments) are added in
+-- later phases.
 --
 -- due_date uses relative offsets from CURRENT_DATE so the seed always
 -- exercises overdue (past), due-soon (next 2 days) and future states,
@@ -34,3 +34,14 @@ INSERT INTO task_labels (task_id, label_id) VALUES
     (6, 6), -- Refatorar serviço de autenticação: azul
     (8, 5), -- Integrar gateway de pagamento: roxo
     (9, 1); -- Migrar banco de dados para produção: verde
+
+INSERT INTO checklist_items (task_id, title, done, item_order) VALUES
+    (1, 'Levantar requisitos com o cliente', TRUE, 0),
+    (1, 'Calcular estimativa de horas', TRUE, 1),
+    (1, 'Revisar valores com o financeiro', FALSE, 2),
+    (3, 'Cenário de sucesso', TRUE, 0),
+    (3, 'Cenário de cartão recusado', FALSE, 1),
+    (3, 'Cenário de timeout do gateway', FALSE, 2),
+    (9, 'Backup do banco antigo', TRUE, 0),
+    (9, 'Rodar migração', TRUE, 1),
+    (9, 'Validar integridade dos dados', TRUE, 2);
