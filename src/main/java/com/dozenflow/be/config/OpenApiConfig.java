@@ -16,6 +16,6 @@ public class OpenApiConfig {
                         .title("DozenFlow Task API")
                         .version("v1.0")
                         .description("API para gerenciamento de tarefas em um quadro Kanban.")
-                        .license(new License().name("Apache 2.0").url("http://springdoc.org")));
+                        .license(new License().name("MIT License").url("https://opensource.org/licenses/MIT")));
     }
 }
