@@ -60,6 +60,23 @@ docker run -p 8080:8080 --env-file .env dozenflow-be
 Em produção (Render) o serviço é implantado a partir da imagem Docker deste
 repositório, com as variáveis acima configuradas no painel do Render.
 
+### Cold start no plano free do Render
+
+O serviço roda no plano gratuito do Render, que **desliga a instância após um
+período de inatividade**. A primeira requisição depois disso "acorda" o
+container, o que pode levar mais tempo do que o timeout do proxy de redirect
+do Netlify — resultando num `504 Gateway Timeout` visível no frontend
+(confirmado em teste manual: a 1ª tentativa de criar uma tarefa falhou com
+504, a 2ª logo em seguida funcionou normalmente, já com o backend acordado).
+
+Isso é uma limitação do plano gratuito, não um bug de código. Mitigações
+possíveis, nenhuma aplicada por padrão:
+- Upgrade para um plano pago do Render (sem sleep automático).
+- Um serviço externo de ping/keep-alive batendo em `/actuator/health`
+  periodicamente para evitar que a instância durma.
+- No frontend, tratar o erro exibindo um aviso de "acordando o servidor,
+  tente novamente em alguns segundos" em vez de uma falha silenciosa.
+
 ## Testes
 
 ```bash

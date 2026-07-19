@@ -33,6 +33,12 @@ e este projeto adere a [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - `TUTORIAL-BACKEND.md` corrigido: mencionava MySQL como banco de produção,
   mas o projeto usa PostgreSQL.
 
+### Known issues
+- Cold start no plano free do Render: a primeira requisição após um período
+  de inatividade pode retornar `504 Gateway Timeout` no frontend enquanto o
+  container acorda (confirmado em teste manual). Ver seção "Cold start no
+  plano free do Render" no `README.md` para detalhes e mitigações possíveis.
+
 ## [0.1.0] - 2025-08-27
 
 Baseline reconstruído a partir do histórico do repositório.
