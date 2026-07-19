@@ -1,9 +1,11 @@
 package com.dozenflow.be.task.dto;
 
+import com.dozenflow.be.label.dto.LabelResponseDTO;
 import com.dozenflow.be.task.TaskStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Schema(description = "Data Transfer Object for representing a task in API responses")
 public record TaskResponseDTO(
@@ -18,5 +20,7 @@ public record TaskResponseDTO(
         @Schema(description = "The vertical order of the task within its status column", example = "1")
         int taskOrder,
         @Schema(description = "Optional due date for the task", example = "2026-08-01")
-        LocalDate dueDate
+        LocalDate dueDate,
+        @Schema(description = "Labels attached to this task")
+        List<LabelResponseDTO> labels
 ) {}

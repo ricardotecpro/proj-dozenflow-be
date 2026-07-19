@@ -1,5 +1,7 @@
 package com.dozenflow.be.task.mapper;
 
+import com.dozenflow.be.label.Label;
+import com.dozenflow.be.label.mapper.LabelMapper;
 import com.dozenflow.be.task.Task;
 import com.dozenflow.be.task.TaskStatus;
 import com.dozenflow.be.task.dto.TaskRequestDTO;
@@ -12,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TaskMapperTest {
 
-    private final TaskMapper mapper = new TaskMapper();
+    private final TaskMapper mapper = new TaskMapper(new LabelMapper());
 
     @Test
     void toEntity_mapsAllFieldsFromRequestDto() {
@@ -48,5 +50,27 @@ class TaskMapperTest {
         assertThat(dto.status()).isEqualTo(TaskStatus.CONCLUIDA);
         assertThat(dto.taskOrder()).isEqualTo(5);
         assertThat(dto.dueDate()).isEqualTo(dueDate);
+        assertThat(dto.labels()).isEmpty();
+    }
+
+    @Test
+    void toResponseDTO_mapsLabelsSortedById() {
+        Label green = new Label();
+        green.setId(2L);
+        green.setColorHex("#61bd4f");
+        Label yellow = new Label();
+        yellow.setId(1L);
+        yellow.setColorHex("#f2d600");
+
+        Task task = new Task();
+        task.setId(10L);
+        task.setTitle("Title");
+        task.setStatus(TaskStatus.A_FAZER);
+        task.getLabels().add(green);
+        task.getLabels().add(yellow);
+
+        TaskResponseDTO dto = mapper.toResponseDTO(task);
+
+        assertThat(dto.labels()).extracting("id").containsExactly(1L, 2L);
     }
 }

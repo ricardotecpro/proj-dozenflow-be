@@ -1,5 +1,7 @@
 package com.dozenflow.be.task;
 
+import com.dozenflow.be.label.Label;
+import com.dozenflow.be.label.LabelRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,9 @@ class TaskControllerTest {
 
     @Autowired
     private TaskRepository taskRepository;
+
+    @Autowired
+    private LabelRepository labelRepository;
 
     @Test
     void getAllTasks_returnsEmptyList_whenNoTasksExist() throws Exception {
@@ -142,5 +147,50 @@ class TaskControllerTest {
     void deleteTask_returnsNotFound_whenTaskDoesNotExist() throws Exception {
         mockMvc.perform(delete("/api/tasks/{id}", 999_999L))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void attachLabel_addsLabelToTaskResponse() throws Exception {
+        Task task = new Task();
+        task.setTitle("Labeled task");
+        task.setStatus(TaskStatus.A_FAZER);
+        task = taskRepository.save(task);
+
+        Label label = new Label();
+        label.setColorHex("#eb5a46");
+        label = labelRepository.save(label);
+
+        mockMvc.perform(post("/api/tasks/{id}/labels/{labelId}", task.getId(), label.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.labels", hasSize(1)))
+                .andExpect(jsonPath("$.labels[0].colorHex").value("#eb5a46"));
+    }
+
+    @Test
+    void attachLabel_returnsNotFound_whenLabelDoesNotExist() throws Exception {
+        Task task = new Task();
+        task.setTitle("Task");
+        task.setStatus(TaskStatus.A_FAZER);
+        task = taskRepository.save(task);
+
+        mockMvc.perform(post("/api/tasks/{id}/labels/{labelId}", task.getId(), 999_999L))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void detachLabel_removesLabelFromTaskResponse() throws Exception {
+        Label label = new Label();
+        label.setColorHex("#eb5a46");
+        label = labelRepository.save(label);
+
+        Task task = new Task();
+        task.setTitle("Labeled task");
+        task.setStatus(TaskStatus.A_FAZER);
+        task.getLabels().add(label);
+        task = taskRepository.save(task);
+
+        mockMvc.perform(delete("/api/tasks/{id}/labels/{labelId}", task.getId(), label.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.labels", hasSize(0)));
     }
 }

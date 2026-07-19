@@ -1,5 +1,7 @@
 package com.dozenflow.be.task;
 
+import com.dozenflow.be.label.Label;
+import com.dozenflow.be.label.LabelRepository;
 import com.dozenflow.be.task.dto.TaskRequestDTO;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,11 +25,14 @@ class TaskServiceTest {
     @Mock
     private TaskRepository taskRepository;
 
+    @Mock
+    private LabelRepository labelRepository;
+
     private TaskService taskService;
 
     @BeforeEach
     void setUp() {
-        taskService = new TaskService(taskRepository);
+        taskService = new TaskService(taskRepository, labelRepository);
     }
 
     @Test
@@ -106,5 +111,50 @@ class TaskServiceTest {
                 .hasMessageContaining("99");
 
         verify(taskRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void attachLabel_addsLabelToTaskAndSaves_whenBothExist() {
+        Task task = new Task();
+        task.setId(1L);
+        Label label = new Label();
+        label.setId(2L);
+
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
+        when(labelRepository.findById(2L)).thenReturn(Optional.of(label));
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Task result = taskService.attachLabel(1L, 2L);
+
+        assertThat(result.getLabels()).containsExactly(label);
+    }
+
+    @Test
+    void attachLabel_throwsEntityNotFoundException_whenLabelDoesNotExist() {
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(new Task()));
+        when(labelRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> taskService.attachLabel(1L, 99L))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("99");
+
+        verify(taskRepository, never()).save(any());
+    }
+
+    @Test
+    void detachLabel_removesLabelFromTaskAndSaves_whenBothExist() {
+        Task task = new Task();
+        task.setId(1L);
+        Label label = new Label();
+        label.setId(2L);
+        task.getLabels().add(label);
+
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
+        when(labelRepository.existsById(2L)).thenReturn(true);
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Task result = taskService.detachLabel(1L, 2L);
+
+        assertThat(result.getLabels()).isEmpty();
     }
 }

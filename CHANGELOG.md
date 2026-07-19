@@ -8,6 +8,16 @@ e este projeto adere a [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ## [Unreleased]
 
 ### Added
+- Labels coloridas nas tarefas: catálogo de labels do board
+  (`GET/POST /api/labels`, `PUT/DELETE /api/labels/{id}`) com a paleta
+  clássica do Trello pré-populada (`V3__create_labels.sql`), e associação
+  many-to-many com tarefas via `POST/DELETE /api/tasks/{id}/labels/{labelId}`.
+  `Task.labels` usa fetch `EAGER` + `FetchMode.SUBSELECT` (não o `LAZY`
+  padrão do JPA) porque `spring.jpa.open-in-view=false` significa que o
+  mapper lê essa coleção depois que a transação do service já fechou —
+  `EAGER` evita `LazyInitializationException` e `SUBSELECT` evita N+1
+  (1 query extra para todas as tarefas, não uma por tarefa). Excluir uma
+  label remove a associação de todas as tarefas via `ON DELETE CASCADE`.
 - Campo opcional `dueDate` (data de vencimento) em `Task`, exposto em
   `POST/PUT /api/tasks` e nas respostas da API (`V2__add_due_date.sql`).
   Primeiro de uma série de recursos novos de card estilo Trello (labels,

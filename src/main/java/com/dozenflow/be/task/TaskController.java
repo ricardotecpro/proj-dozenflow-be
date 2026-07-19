@@ -66,4 +66,22 @@ public class TaskController {
         taskService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/labels/{labelId}")
+    @Operation(summary = "Attach a label to a task", description = "Associates an existing label with a task.")
+    @ApiResponse(responseCode = "200", description = "Label attached successfully", content = @Content(schema = @Schema(implementation = TaskResponseDTO.class)))
+    @ApiResponse(responseCode = "404", description = "Task or label not found")
+    public ResponseEntity<TaskResponseDTO> attachLabel(@PathVariable Long id, @PathVariable Long labelId) {
+        Task task = taskService.attachLabel(id, labelId);
+        return ResponseEntity.ok(taskMapper.toResponseDTO(task));
+    }
+
+    @DeleteMapping("/{id}/labels/{labelId}")
+    @Operation(summary = "Detach a label from a task", description = "Removes a label association from a task.")
+    @ApiResponse(responseCode = "200", description = "Label detached successfully", content = @Content(schema = @Schema(implementation = TaskResponseDTO.class)))
+    @ApiResponse(responseCode = "404", description = "Task or label not found")
+    public ResponseEntity<TaskResponseDTO> detachLabel(@PathVariable Long id, @PathVariable Long labelId) {
+        Task task = taskService.detachLabel(id, labelId);
+        return ResponseEntity.ok(taskMapper.toResponseDTO(task));
+    }
 }
