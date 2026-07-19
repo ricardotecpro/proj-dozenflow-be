@@ -8,6 +8,17 @@ e este projeto adere a [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ## [Unreleased]
 
 ### Added
+- Migrações de schema via Flyway (`src/main/resources/db/migration`),
+  substituindo `ddl-auto` autogerado pelo Hibernate como fonte de verdade
+  do banco (agora só valida). `V1__baseline.sql` reproduz o schema atual
+  da tabela `tasks`; ambiente de produção precisa das variáveis
+  `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` e `SPRING_FLYWAY_BASELINE_VERSION=1`
+  no primeiro deploy após essa mudança, já que a tabela já existe lá (ver
+  README). Preparação para os novos recursos de card (labels, checklist,
+  prazo, comentários e anexos) que virão nas próximas migrações.
+- Profile opcional `seed` (`SPRING_PROFILES_ACTIVE=dev,seed`) que popula o
+  H2 de desenvolvimento com tarefas de exemplo (`data-seed.sql`), só para
+  testes manuais/visuais — nunca ativo em testes automatizados ou produção.
 - `README.md` com instruções reais de setup, execução e deploy.
 - `LICENSE` (MIT), `CONTRIBUTING.md` e este `CHANGELOG.md`.
 - `application-prod.properties.example` documentando as variáveis de ambiente

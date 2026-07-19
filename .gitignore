@@ -17,6 +17,9 @@ Desktop.ini
 *.tmp
 *.bak
 *.sql
+# ...exceto migrações Flyway e o seed de desenvolvimento, que são código-fonte
+!src/main/resources/db/migration/*.sql
+!src/main/resources/data-seed.sql
 *.sqlite
 *.swp
 *.swo

@@ -28,6 +28,24 @@ spring.jpa.show-sql=false
 spring.jpa.open-in-view=false
 
 # ===============================
+# FLYWAY
+# ===============================
+# The `tasks` table already exists in production (created by Hibernate
+# before Flyway was introduced), so on the first deploy after this change
+# Flyway must be told to baseline at V1 instead of trying to CREATE TABLE
+# again. Safe to leave both properties set permanently: baseline-on-migrate
+# only acts when the schema history table doesn't exist yet, so it's a
+# no-op on every deploy after the first.
+#
+# IMPORTANT: this file is a template only — it is gitignored and never
+# copied into the Docker image, so these two properties do nothing on
+# Render by themselves. They must be set as real environment variables
+# there (SPRING_FLYWAY_BASELINE_ON_MIGRATE / SPRING_FLYWAY_BASELINE_VERSION
+# — see the table in README.md).
+spring.flyway.baseline-on-migrate=true
+spring.flyway.baseline-version=1
+
+# ===============================
 # H2 CONSOLE — must stay disabled in production
 # ===============================
 spring.h2.console.enabled=false
