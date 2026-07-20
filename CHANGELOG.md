@@ -8,6 +8,20 @@ e este projeto adere a [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ## [Unreleased]
 
 ### Added
+- Listas dinâmicas do board (`TaskList`, substituindo o enum fixo
+  `TaskStatus`): CRUD completo (`GET/POST/PUT /api/lists`), reordenação por
+  posição, e arquivamento (`POST /api/lists/{id}/archive`, cascateando o
+  arquivamento pros cards da lista; `POST .../restore`) em vez de exclusão
+  definitiva — a exclusão real (`DELETE`) fica reservada pro painel de
+  itens arquivados do frontend. Guarda contra arquivar/excluir a última
+  lista ativa do board (`LastActiveListException` → 400).
+  `V8__add_task_lists_and_archiving.sql` cria `task_lists` e as colunas
+  `list_id`/`archived` em `tasks` (substituindo a antiga coluna `status`).
+- Arquivamento de tarefas (`POST /api/tasks/{id}/archive`, `.../restore`,
+  `GET /api/tasks/archived`), mesmo espírito de soft-delete das listas:
+  restaurar uma tarefa cuja lista ainda está arquivada restaura a lista
+  automaticamente junto, pra não deixar cartão "órfão" sem coluna visível
+  no board.
 - Anexos nas tarefas: upload/listagem/download/exclusão de arquivo por
   tarefa via `/api/tasks/{taskId}/attachments` (`V6__create_attachments.sql`).
   Decisão de arquitetura (confirmada com o usuário): arquivo guardado como
@@ -85,7 +99,39 @@ e este projeto adere a [Versionamento Semântico](https://semver.org/lang/pt-BR/
   produção. Validado manualmente com requisições OPTIONS simulando preview,
   produção e uma origem não relacionada.
 
+### Security
+- Swagger UI e `/v3/api-docs` desligados em produção
+  (`springdoc.api-docs.enabled`/`springdoc.swagger-ui.enabled=false`) —
+  antes ficavam expostos publicamente por padrão, revelando o schema
+  completo da API em URLs conhecidas.
+- Removida a autenticação in-memory padrão do Spring Security
+  (`UserDetailsServiceAutoConfiguration` excluída na classe principal):
+  como todo endpoint é `permitAll`, o usuário/senha aleatórios gerados a
+  cada boot ("Using generated security password") não protegiam nada, só
+  poluíam o log.
+- Branch padrão do repositório (renomeado de `hotfix/add-h2-and-task-table`
+  para `main`) protegido no GitHub: exige o check `build-and-test` do CI
+  passando antes de qualquer merge.
+- Senha do usuário do banco no Neon rotacionada após ter sido exposta
+  acidentalmente durante uma investigação de conectividade.
+
 ### Fixed
+- **Bug crítico de persistência em produção**: o serviço no Render nunca
+  teve `SPRING_PROFILES_ACTIVE=prod` configurado, então rodava sempre no
+  profile `dev` (padrão de `application.properties`) com banco H2 em
+  memória — todo dado de "produção" era apagado a cada sleep/restart da
+  instância free, sem que ninguém percebesse. As variáveis existentes
+  (`DB_URL`/`DB_USERNAME`/`DB_PASSWORD`) também tinham nome errado e nunca
+  eram lidas pelo Spring (que espera `SPRING_DATASOURCE_*`). Corrigido
+  configurando as variáveis certas no Render mais `SPRING_PROFILES_ACTIVE=
+  prod`; `SPRING_FLYWAY_BASELINE_ON_MIGRATE`/`_VERSION=1` reconciliam o
+  Flyway com a tabela `tasks` legada que já existia no banco Postgres real
+  (Neon), nunca antes conectado de fato.
+- `TaskRepository.archiveAllByListId` (bulk update `@Modifying` usado pelo
+  cascade de arquivamento de listas) estava sem `flushAutomatically = true`
+  — o `clearAutomatically = true` sozinho descartava silenciosamente a
+  mudança pendente `TaskList.archived = true` antes dela ser gravada no
+  banco, fazendo a lista "voltar" a aparecer como ativa.
 - `TUTORIAL-BACKEND.md` corrigido: mencionava MySQL como banco de produção,
   mas o projeto usa PostgreSQL.
 
