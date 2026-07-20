@@ -59,6 +59,8 @@ expõe o H2 console. Configure as variáveis de ambiente abaixo (veja também
 | `SPRING_DATASOURCE_USERNAME` | usuário do banco |
 | `SPRING_DATASOURCE_PASSWORD` | senha do banco |
 | `CORS_ALLOWED_ORIGINS` | padrões de origem permitidos, separados por vírgula (aceita `*`, ex.: `https://dozenflow.netlify.app,https://*--dozenflow.netlify.app` — o segundo padrão cobre os deploy previews do Netlify) |
+| `SPRING_FLYWAY_BASELINE_ON_MIGRATE` / `SPRING_FLYWAY_BASELINE_VERSION` | `true` / `1` — necessário porque a tabela `tasks` já existia (criada pelo Hibernate) antes do Flyway ser introduzido |
+| `SPRINGDOC_API_DOCS_ENABLED` / `SPRINGDOC_SWAGGER_UI_ENABLED` | `false` / `false` — desliga `/v3/api-docs` e `/swagger-ui.html` em produção (ficam ligados por padrão) |
 
 Nunca commite um `application-prod.properties` com segredos reais — o
 `.gitignore` já bloqueia esse arquivo intencionalmente.

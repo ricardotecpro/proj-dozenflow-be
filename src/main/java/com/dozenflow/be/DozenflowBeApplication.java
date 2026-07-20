@@ -2,10 +2,15 @@ package com.dozenflow.be;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 
 import java.util.Collections;
 
-@SpringBootApplication
+// UserDetailsServiceAutoConfiguration is excluded because every endpoint is permitAll
+// (see SecurityConfig) — without this, Spring Boot still stands up a default in-memory
+// user with a random password logged on every boot ("Using generated security password"),
+// which protects nothing here and just adds noise/confusion to the logs.
+@SpringBootApplication(exclude = UserDetailsServiceAutoConfiguration.class)
 public class DozenflowBeApplication {
 
 	public static void main(String[] args) {
