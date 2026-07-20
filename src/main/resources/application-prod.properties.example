@@ -51,6 +51,15 @@ spring.flyway.baseline-version=1
 spring.h2.console.enabled=false
 
 # ===============================
+# API DOCS — disabled in production
+# ===============================
+# springdoc enables /v3/api-docs and /swagger-ui.html by default, publicly
+# exposing the full API schema. Fine for local/dev exploration, not needed
+# in production since the frontend is the only real consumer.
+springdoc.api-docs.enabled=false
+springdoc.swagger-ui.enabled=false
+
+# ===============================
 # CORS
 # ===============================
 # Includes the Netlify deploy-preview/branch-preview wildcard subdomain.
