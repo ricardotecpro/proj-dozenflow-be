@@ -24,9 +24,10 @@ public class TaskMapper {
         Task task = new Task();
         task.setTitle(dto.title());
         task.setDescription(dto.description());
-        task.setStatus(dto.status());
+        task.setListId(dto.listId());
         task.setTaskOrder(dto.taskOrder());
         task.setDueDate(dto.dueDate());
+        task.setCoverColor(dto.coverColor());
         return task;
     }
 
@@ -41,7 +42,7 @@ public class TaskMapper {
 
         return new TaskResponseDTO(
                 entity.getId(), entity.getTitle(), entity.getDescription(),
-                entity.getStatus(), entity.getTaskOrder(), entity.getDueDate(), labels,
+                entity.getListId(), entity.getTaskOrder(), entity.isArchived(), entity.getDueDate(), entity.getCoverColor(), labels,
                 checklistTotal, checklistDone, entity.getComments().size(), entity.getAttachmentCount()
         );
     }

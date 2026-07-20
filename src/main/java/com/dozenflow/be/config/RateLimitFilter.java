@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -17,14 +18,21 @@ import java.util.concurrent.atomic.AtomicLong;
  * write endpoints under /api/**. Not a substitute for a real gateway/WAF,
  * but blunts trivial abuse/scripted spam since the API has no auth.
  * Resets on redeploy — acceptable for this app's scale (single instance).
+ * Threshold is configurable (see src/test/resources/application.properties)
+ * so the full integration test suite — many MockMvc requests firing from
+ * the same client "IP" within the same 60s window — doesn't trip it.
  */
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private static final int MAX_REQUESTS_PER_WINDOW = 60;
+    private final int maxRequestsPerWindow;
     private static final long WINDOW_MILLIS = 60_000;
 
     private final ConcurrentHashMap<String, Window> windowsByIp = new ConcurrentHashMap<>();
+
+    public RateLimitFilter(@Value("${rate-limit.max-requests-per-window:60}") int maxRequestsPerWindow) {
+        this.maxRequestsPerWindow = maxRequestsPerWindow;
+    }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -37,7 +45,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String clientIp = resolveClientIp(request);
         Window window = windowsByIp.computeIfAbsent(clientIp, ip -> new Window());
 
-        if (window.tryConsume()) {
+        if (window.tryConsume(maxRequestsPerWindow)) {
             filterChain.doFilter(request, response);
         } else {
             response.setStatus(429); // 429 Too Many Requests
@@ -58,7 +66,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         private final AtomicLong windowStart = new AtomicLong(System.currentTimeMillis());
         private final AtomicInteger count = new AtomicInteger(0);
 
-        boolean tryConsume() {
+        boolean tryConsume(int maxRequestsPerWindow) {
             long now = System.currentTimeMillis();
             long start = windowStart.get();
             if (now - start > WINDOW_MILLIS) {
@@ -66,7 +74,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                     count.set(0);
                 }
             }
-            return count.incrementAndGet() <= MAX_REQUESTS_PER_WINDOW;
+            return count.incrementAndGet() <= maxRequestsPerWindow;
         }
     }
 }

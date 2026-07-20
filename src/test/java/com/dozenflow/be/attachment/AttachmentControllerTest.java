@@ -2,11 +2,11 @@ package com.dozenflow.be.attachment;
 
 import com.dozenflow.be.task.Task;
 import com.dozenflow.be.task.TaskRepository;
-import com.dozenflow.be.task.TaskStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@TestPropertySource(properties = "rate-limit.max-requests-per-window=100000")
 @AutoConfigureMockMvc
 @Transactional
 class AttachmentControllerTest {
@@ -32,7 +33,7 @@ class AttachmentControllerTest {
     private Task createTask() {
         Task task = new Task();
         task.setTitle("Task with attachments");
-        task.setStatus(TaskStatus.A_FAZER);
+        task.setListId(1L);
         return taskRepository.save(task);
     }
 
