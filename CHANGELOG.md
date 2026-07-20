@@ -8,6 +8,28 @@ e este projeto adere a [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ## [Unreleased]
 
 ### Added
+- Configurações do board persistidas no backend (`boardsettings`, novo
+  módulo): linha singleton `BoardSettings` (`V11__create_board_settings.sql`)
+  com `GET/PUT /api/board-settings` para a cor de fundo escolhida, e
+  `POST/DELETE /api/board-settings/background-image` para enviar/remover uma
+  imagem de fundo — guardada como blob no banco (mesmo padrão dos anexos de
+  tarefa, mesmo motivo: sobrevive ao disco efêmero do Render). Upload
+  limitado a 5MB e a `image/png|jpeg|gif|webp` (allowlist duplicada
+  deliberadamente da de `AttachmentService`, que também aceita PDF/Word/Excel
+  — só 2 pontos de uso, não compensa uma abstração compartilhada). Substitui
+  o armazenamento antigo, só em `localStorage` no frontend.
+- Capa do cartão ganha tamanho e opção de imagem: colunas `cover_size`
+  (`V9__add_task_cover_size.sql`) e `cover_attachment_id`
+  (`V10__add_task_cover_attachment.sql`, FK para `attachments` com
+  `ON DELETE SET NULL`) em `tasks`, expostas em `TaskRequestDTO`/
+  `TaskResponseDTO`. `coverAttachmentId` é alternativa a `coverColor`
+  (mutuamente exclusivos — setar um zera o outro, `TaskService.update`), e o
+  backend valida que o anexo pertence à própria tarefa antes de aceitá-lo
+  como capa (`requireOwnedAttachment`, 404 se não). Novo endpoint
+  `GET /api/tasks/{taskId}/attachments/{id}/view` serve os mesmos bytes do
+  `/download`, mas inline e cacheável (`Cache-Control: private, max-age=3600`)
+  em vez de forçar o download do arquivo — pensado para uso direto em
+  `<img src>`/`background-image`.
 - Listas dinâmicas do board (`TaskList`, substituindo o enum fixo
   `TaskStatus`): CRUD completo (`GET/POST/PUT /api/lists`), reordenação por
   posição, e arquivamento (`POST /api/lists/{id}/archive`, cascateando o
@@ -89,6 +111,9 @@ e este projeto adere a [Versionamento Semântico](https://semver.org/lang/pt-BR/
   `HEALTHCHECK`.
 
 ### Changed
+- `README.md` documenta o setup rápido do JDK 21 via asdf (`asdf plugin add
+  java` / `asdf install java openjdk-21`), pro caso de quem já usa asdf mas
+  ainda não tem o plugin `java` instalado.
 - Dependências atualizadas para as versões estáveis mais recentes compatíveis.
 - `OpenApiConfig` agora referencia a licença MIT do projeto (antes citava
   Apache 2.0 incorretamente).
