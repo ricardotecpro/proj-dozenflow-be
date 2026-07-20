@@ -33,6 +33,19 @@ disponível em `http://localhost:8080`.
 - OpenAPI JSON: `http://localhost:8080/v3/api-docs`
 - Health check: `http://localhost:8080/actuator/health`
 
+### Popular dados de teste (seed)
+
+Por padrão o banco H2 de desenvolvimento sobe vazio (é assim que os testes
+esperam encontrá-lo). Para testar manualmente com dados de exemplo — útil
+pra QA visual do board —, ative o profile `seed` junto do `dev`:
+
+```bash
+SPRING_PROFILES_ACTIVE=dev,seed ./mvnw spring-boot:run
+```
+
+Isso popula a tabela `tasks` com tarefas de exemplo nas três colunas (veja
+`src/main/resources/data-seed.sql`). Nunca ativa em testes ou em produção.
+
 ## Como rodar em produção
 
 Produção usa o profile `prod`, que espera um PostgreSQL real e **não**

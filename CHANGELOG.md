@@ -8,6 +8,57 @@ e este projeto adere a [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ## [Unreleased]
 
 ### Added
+- Anexos nas tarefas: upload/listagem/download/exclusão de arquivo por
+  tarefa via `/api/tasks/{taskId}/attachments` (`V6__create_attachments.sql`).
+  Decisão de arquitetura (confirmada com o usuário): arquivo guardado como
+  blob no próprio banco (`bytea`, coluna `data`), não em disco nem em
+  storage externo — evita o problema do disco efêmero do Render (some a
+  cada redeploy) sem precisar de conta/credencial de serviço novo. Limite
+  de 5MB por arquivo e allowlist de `content-type` (imagens comuns, PDF,
+  texto, Word/Excel). A listagem usa uma projeção do Spring Data que
+  exclui a coluna `data` — nunca carrega os bytes só pra mostrar nomes de
+  arquivo. `TaskResponseDTO` ganha `attachmentCount`, mas ao contrário de
+  labels/checklist/comentários (que usam uma coleção JPA `EAGER`+
+  `SUBSELECT`), aqui uso `@Formula` (subquery `COUNT` correlacionada) —
+  uma coleção seria carregar todo o blob de cada tarefa só pra contar.
+- Comentários nas tarefas: adicionar/listar/excluir comentários por tarefa
+  via `/api/tasks/{taskId}/comments` (`V5__create_comments.sql`). Sem
+  edição (só criar e excluir) e sem dono/autor — consistente com o modelo
+  sem autenticação do projeto, qualquer pessoa pode excluir qualquer
+  comentário. `TaskResponseDTO` ganha `commentCount`, mesma estratégia de
+  fetch `EAGER`+`SUBSELECT` das labels/checklist.
+- Checklist nas tarefas: itens de checklist (título + concluído/pendente)
+  por tarefa via `/api/tasks/{taskId}/checklist-items`
+  (`GET/POST` na coleção, `PUT/DELETE` por item — `V4__create_checklist_items.sql`).
+  `TaskResponseDTO` ganha `checklistTotal`/`checklistDone` (contagem, não a
+  lista completa — a lista cheia só é buscada quando o diálogo da tarefa
+  abre, evitando overfetch na visão do board). Mesma estratégia de fetch
+  `EAGER`+`SUBSELECT` das labels, pelo mesmo motivo (`open-in-view=false`).
+- Labels coloridas nas tarefas: catálogo de labels do board
+  (`GET/POST /api/labels`, `PUT/DELETE /api/labels/{id}`) com a paleta
+  clássica do Trello pré-populada (`V3__create_labels.sql`), e associação
+  many-to-many com tarefas via `POST/DELETE /api/tasks/{id}/labels/{labelId}`.
+  `Task.labels` usa fetch `EAGER` + `FetchMode.SUBSELECT` (não o `LAZY`
+  padrão do JPA) porque `spring.jpa.open-in-view=false` significa que o
+  mapper lê essa coleção depois que a transação do service já fechou —
+  `EAGER` evita `LazyInitializationException` e `SUBSELECT` evita N+1
+  (1 query extra para todas as tarefas, não uma por tarefa). Excluir uma
+  label remove a associação de todas as tarefas via `ON DELETE CASCADE`.
+- Campo opcional `dueDate` (data de vencimento) em `Task`, exposto em
+  `POST/PUT /api/tasks` e nas respostas da API (`V2__add_due_date.sql`).
+  Primeiro de uma série de recursos novos de card estilo Trello (labels,
+  checklist, comentários e anexos vêm nas próximas migrações).
+- Migrações de schema via Flyway (`src/main/resources/db/migration`),
+  substituindo `ddl-auto` autogerado pelo Hibernate como fonte de verdade
+  do banco (agora só valida). `V1__baseline.sql` reproduz o schema atual
+  da tabela `tasks`; ambiente de produção precisa das variáveis
+  `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` e `SPRING_FLYWAY_BASELINE_VERSION=1`
+  no primeiro deploy após essa mudança, já que a tabela já existe lá (ver
+  README). Preparação para os novos recursos de card (labels, checklist,
+  prazo, comentários e anexos) que virão nas próximas migrações.
+- Profile opcional `seed` (`SPRING_PROFILES_ACTIVE=dev,seed`) que popula o
+  H2 de desenvolvimento com tarefas de exemplo (`data-seed.sql`), só para
+  testes manuais/visuais — nunca ativo em testes automatizados ou produção.
 - `README.md` com instruções reais de setup, execução e deploy.
 - `LICENSE` (MIT), `CONTRIBUTING.md` e este `CHANGELOG.md`.
 - `application-prod.properties.example` documentando as variáveis de ambiente
