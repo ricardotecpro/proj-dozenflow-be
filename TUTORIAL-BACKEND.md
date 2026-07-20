@@ -17,7 +17,7 @@ Nosso objetivo é criar uma API que gerencie tarefas, permitindo:
 - **Spring Data JPA**: Para simplificar o acesso e a persistência de dados.
 - **Maven**: Para gerenciamento de dependências e build do projeto.
 - **H2 Database**: Um banco de dados em memória, perfeito para desenvolvimento e testes.
-- **MySQL**: Como nosso banco de dados para o ambiente de produção.
+- **PostgreSQL**: Como nosso banco de dados para o ambiente de produção.
 - **Lombok**: Para reduzir código repetitivo (boilerplate).
 
 ### 🗺️ Caso de Uso Principal
@@ -69,7 +69,7 @@ Configure seu projeto com as seguintes opções:
   - Spring Data JPA
   - Lombok
   - H2 Database
-  - MySQL Driver
+  - PostgreSQL Driver
   - Spring Boot DevTools
   - Validation
 
@@ -203,7 +203,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
 ### ### 2. Configurando os Perfis de Banco de Dados
 
-Usaremos perfis do Spring para gerenciar as configurações de desenvolvimento (H2) e produção (MySQL).
+Usaremos perfis do Spring para gerenciar as configurações de desenvolvimento (H2) e produção (PostgreSQL).
 
 > **Arquivo**: `backend/src/main/resources/application.properties`
 ```properties
@@ -226,12 +226,14 @@ spring.jpa.open-in-view=false
 ```
 
 > **Arquivo**: `backend/src/main/resources/application-prod.properties`
+> (não versionado — veja `application-prod.properties.example`)
 ```properties
-# PRODUCTION PROFILE (MySQL)
-spring.datasource.url=jdbc:mysql://localhost:3306/dozendb?useSSL=false&serverTimezone=UTC
-spring.datasource.username=your_mysql_user
-spring.datasource.password=your_mysql_password
+# PRODUCTION PROFILE (PostgreSQL)
+spring.datasource.url=jdbc:postgresql://localhost:5432/dozendb
+spring.datasource.username=your_postgres_user
+spring.datasource.password=your_postgres_password
 spring.jpa.hibernate.ddl-auto=validate
+spring.h2.console.enabled=false
 ```
 
 ### ### 3. Populando o Banco com Dados Iniciais
