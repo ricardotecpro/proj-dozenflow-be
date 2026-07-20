@@ -2,6 +2,8 @@ package com.dozenflow.be.task;
 
 import com.dozenflow.be.label.Label;
 import com.dozenflow.be.label.LabelRepository;
+import com.dozenflow.be.list.TaskList;
+import com.dozenflow.be.list.TaskListRepository;
 import com.dozenflow.be.task.dto.TaskRequestDTO;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
@@ -14,17 +16,25 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final LabelRepository labelRepository;
+    private final TaskListRepository taskListRepository;
 
-    public TaskService(TaskRepository taskRepository, LabelRepository labelRepository) {
+    public TaskService(TaskRepository taskRepository, LabelRepository labelRepository,
+                        TaskListRepository taskListRepository) {
         this.taskRepository = taskRepository;
         this.labelRepository = labelRepository;
+        this.taskListRepository = taskListRepository;
     }
 
     public List<Task> findAll() {
-        return taskRepository.findAllByOrderByTaskOrderAsc();
+        return taskRepository.findAllByArchivedFalseOrderByTaskOrderAsc();
+    }
+
+    public List<Task> findArchived() {
+        return taskRepository.findAllByArchivedTrueOrderByTaskOrderAsc();
     }
 
     public Task create(Task task) {
+        requireListExists(task.getListId());
         return taskRepository.save(task);
     }
 
@@ -33,13 +43,41 @@ public class TaskService {
         Task existingTask = taskRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Task not found with id: " + id));
 
+        requireListExists(dto.listId());
+
         existingTask.setTitle(dto.title());
         existingTask.setDescription(dto.description());
-        existingTask.setStatus(dto.status());
+        existingTask.setListId(dto.listId());
         existingTask.setTaskOrder(dto.taskOrder());
         existingTask.setDueDate(dto.dueDate());
+        existingTask.setCoverColor(dto.coverColor());
 
         return taskRepository.save(existingTask);
+    }
+
+    @Transactional
+    public Task archive(Long id) {
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Task not found with id: " + id));
+        task.setArchived(true);
+        return taskRepository.save(task);
+    }
+
+    @Transactional
+    public Task restore(Long id) {
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Task not found with id: " + id));
+
+        TaskList list = taskListRepository.findById(task.getListId())
+                .orElseThrow(() -> new EntityNotFoundException("TaskList not found with id: " + task.getListId()));
+
+        if (list.isArchived()) {
+            list.setArchived(false);
+            taskListRepository.save(list);
+        }
+
+        task.setArchived(false);
+        return taskRepository.save(task);
     }
 
     public void delete(Long id) {
@@ -70,5 +108,11 @@ public class TaskService {
 
         task.getLabels().removeIf(label -> label.getId().equals(labelId));
         return taskRepository.save(task);
+    }
+
+    private void requireListExists(Long listId) {
+        if (!taskListRepository.existsById(listId)) {
+            throw new EntityNotFoundException("TaskList not found with id: " + listId);
+        }
     }
 }

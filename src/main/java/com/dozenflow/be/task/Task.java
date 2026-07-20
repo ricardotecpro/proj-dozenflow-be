@@ -31,15 +31,21 @@ public class Task {
 
     private String description;
 
-    @Enumerated(EnumType.STRING)
+    @Column(name = "list_id", nullable = false)
+    private Long listId;
+
     @Column(nullable = false)
-    private TaskStatus status;
+    private boolean archived = false;
 
     @Column(name = "task_order")
     private int taskOrder;
 
     @Column(name = "due_date")
     private LocalDate dueDate;
+
+    // Cor de capa do cartão (hex, ex.: "#0079bf"), estilo Trello. Nulo = sem capa.
+    @Column(name = "cover_color")
+    private String coverColor;
 
     // EAGER (not the JPA default LAZY) because open-in-view is disabled:
     // TaskMapper reads this collection from the controller layer, after the

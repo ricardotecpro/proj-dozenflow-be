@@ -30,10 +30,19 @@ public class TaskController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all tasks", description = "Retrieves a list of all tasks, ordered by their position.")
+    @Operation(summary = "Get all active tasks", description = "Retrieves a list of all non-archived tasks, ordered by their position.")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved list")
     public List<TaskResponseDTO> getAllTasks() {
         return taskService.findAll().stream()
+                .map(taskMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/archived")
+    @Operation(summary = "Get all archived tasks", description = "Retrieves a list of all archived tasks, ordered by their position.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved list")
+    public List<TaskResponseDTO> getArchivedTasks() {
+        return taskService.findArchived().stream()
                 .map(taskMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -59,12 +68,30 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete a task", description = "Deletes a task by its ID.")
+    @Operation(summary = "Permanently delete a task", description = "Permanently deletes a task by its ID. Intended for use from the archive panel.")
     @ApiResponse(responseCode = "204", description = "Task deleted successfully")
     @ApiResponse(responseCode = "404", description = "Task not found")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
         taskService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/archive")
+    @Operation(summary = "Archive a task", description = "Archives a task by its ID.")
+    @ApiResponse(responseCode = "200", description = "Task archived successfully", content = @Content(schema = @Schema(implementation = TaskResponseDTO.class)))
+    @ApiResponse(responseCode = "404", description = "Task not found")
+    public ResponseEntity<TaskResponseDTO> archiveTask(@PathVariable Long id) {
+        Task archived = taskService.archive(id);
+        return ResponseEntity.ok(taskMapper.toResponseDTO(archived));
+    }
+
+    @PostMapping("/{id}/restore")
+    @Operation(summary = "Restore a task", description = "Restores an archived task. If its list is still archived, the list is restored too.")
+    @ApiResponse(responseCode = "200", description = "Task restored successfully", content = @Content(schema = @Schema(implementation = TaskResponseDTO.class)))
+    @ApiResponse(responseCode = "404", description = "Task not found")
+    public ResponseEntity<TaskResponseDTO> restoreTask(@PathVariable Long id) {
+        Task restored = taskService.restore(id);
+        return ResponseEntity.ok(taskMapper.toResponseDTO(restored));
     }
 
     @PostMapping("/{id}/labels/{labelId}")

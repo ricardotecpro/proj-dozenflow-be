@@ -2,30 +2,32 @@
 -- the `seed` profile is active (see application-seed.properties) — never
 -- runs during tests or a plain `dev` boot, so it can't interfere with
 -- TaskControllerTest#getAllTasks_returnsEmptyList_whenNoTasksExist.
--- The card-features migrations end at V6 (attachments) — nothing left to
--- extend here for now.
+-- The card-features migrations end at V7 (cover color); V8 adds the
+-- task_lists table and archiving — nothing left to extend here for now.
 --
 -- due_date uses relative offsets from CURRENT_DATE so the seed always
 -- exercises overdue (past), due-soon (next 2 days) and future states,
 -- whatever day this is run.
 --
--- Task/label ids below rely on this running against a fresh H2 database
--- (dev,seed profile), where IDENTITY columns always start at 1: tasks get
--- ids 1-11 in the order inserted, labels are already seeded 1-8 by
--- V3__create_labels.sql (in the same order as the INSERT there: 1=green,
--- 2=yellow, 3=orange, 4=red, 5=purple, 6=blue, 7=sky, 8=lime).
-INSERT INTO tasks (title, description, status, task_order, due_date) VALUES
-    ('Revisar proposta do cliente', 'Conferir escopo e valores antes de enviar', 'A_FAZER', 0, DATEADD('DAY', -2, CURRENT_DATE)),
-    ('Configurar ambiente de staging', NULL, 'A_FAZER', 1, NULL),
-    ('Escrever testes E2E do checkout', 'Cobrir os fluxos de sucesso e falha de pagamento', 'A_FAZER', 2, DATEADD('DAY', 1, CURRENT_DATE)),
-    ('Atualizar dependências do projeto', NULL, 'A_FAZER', 3, DATEADD('DAY', 10, CURRENT_DATE)),
-    ('Planejar sprint da próxima semana', 'Alinhar prioridades com o time de produto', 'A_FAZER', 4, NULL),
-    ('Refatorar serviço de autenticação', 'Extrair validação de token para um componente separado', 'EM_ANDAMENTO', 0, DATEADD('DAY', 2, CURRENT_DATE)),
-    ('Corrigir bug no upload de imagens', NULL, 'EM_ANDAMENTO', 1, DATEADD('DAY', -1, CURRENT_DATE)),
-    ('Integrar gateway de pagamento', 'Ambiente sandbox já configurado, falta o fluxo de estorno', 'EM_ANDAMENTO', 2, NULL),
-    ('Migrar banco de dados para produção', NULL, 'CONCLUIDA', 0, DATEADD('DAY', -5, CURRENT_DATE)),
-    ('Configurar CI/CD', 'Pipeline com lint, testes e build automatizados', 'CONCLUIDA', 1, NULL),
-    ('Deploy da versão 1.0', NULL, 'CONCLUIDA', 2, DATEADD('DAY', -3, CURRENT_DATE));
+-- Task/label/list ids below rely on this running against a fresh H2
+-- database (dev,seed profile), where IDENTITY columns always start at 1:
+-- tasks get ids 1-11 in the order inserted, labels are already seeded 1-8
+-- by V3__create_labels.sql (in the same order as the INSERT there:
+-- 1=green, 2=yellow, 3=orange, 4=red, 5=purple, 6=blue, 7=sky, 8=lime),
+-- and lists are seeded 1-3 by V8__add_task_lists_and_archiving.sql
+-- (1=A Fazer, 2=Em Andamento, 3=Concluída).
+INSERT INTO tasks (title, description, list_id, task_order, due_date) VALUES
+    ('Revisar proposta do cliente', 'Conferir escopo e valores antes de enviar', 1, 0, DATEADD('DAY', -2, CURRENT_DATE)),
+    ('Configurar ambiente de staging', NULL, 1, 1, NULL),
+    ('Escrever testes E2E do checkout', 'Cobrir os fluxos de sucesso e falha de pagamento', 1, 2, DATEADD('DAY', 1, CURRENT_DATE)),
+    ('Atualizar dependências do projeto', NULL, 1, 3, DATEADD('DAY', 10, CURRENT_DATE)),
+    ('Planejar sprint da próxima semana', 'Alinhar prioridades com o time de produto', 1, 4, NULL),
+    ('Refatorar serviço de autenticação', 'Extrair validação de token para um componente separado', 2, 0, DATEADD('DAY', 2, CURRENT_DATE)),
+    ('Corrigir bug no upload de imagens', NULL, 2, 1, DATEADD('DAY', -1, CURRENT_DATE)),
+    ('Integrar gateway de pagamento', 'Ambiente sandbox já configurado, falta o fluxo de estorno', 2, 2, NULL),
+    ('Migrar banco de dados para produção', NULL, 3, 0, DATEADD('DAY', -5, CURRENT_DATE)),
+    ('Configurar CI/CD', 'Pipeline com lint, testes e build automatizados', 3, 1, NULL),
+    ('Deploy da versão 1.0', NULL, 3, 2, DATEADD('DAY', -3, CURRENT_DATE));
 
 INSERT INTO task_labels (task_id, label_id) VALUES
     (1, 4), -- Revisar proposta do cliente: vermelho

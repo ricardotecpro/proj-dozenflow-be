@@ -1,6 +1,7 @@
 package com.dozenflow.be.exception;
 
 import com.dozenflow.be.attachment.InvalidAttachmentException;
+import com.dozenflow.be.list.LastActiveListException;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(InvalidAttachmentException.class)
     protected ResponseEntity<Object> handleInvalidAttachment(InvalidAttachmentException ex) {
+        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
+        return buildResponseEntity(apiError, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Handles attempts to archive/delete the last remaining active list on the board.
+     */
+    @ExceptionHandler(LastActiveListException.class)
+    protected ResponseEntity<Object> handleLastActiveList(LastActiveListException ex) {
         ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
         return buildResponseEntity(apiError, HttpStatus.BAD_REQUEST);
     }

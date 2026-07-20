@@ -2,6 +2,8 @@ package com.dozenflow.be.task;
 
 import com.dozenflow.be.label.Label;
 import com.dozenflow.be.label.LabelRepository;
+import com.dozenflow.be.list.TaskList;
+import com.dozenflow.be.list.TaskListRepository;
 import com.dozenflow.be.task.dto.TaskRequestDTO;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,18 +30,21 @@ class TaskServiceTest {
     @Mock
     private LabelRepository labelRepository;
 
+    @Mock
+    private TaskListRepository taskListRepository;
+
     private TaskService taskService;
 
     @BeforeEach
     void setUp() {
-        taskService = new TaskService(taskRepository, labelRepository);
+        taskService = new TaskService(taskRepository, labelRepository, taskListRepository);
     }
 
     @Test
-    void findAll_returnsTasksOrderedByTaskOrder() {
+    void findAll_returnsActiveTasksOrderedByTaskOrder() {
         Task task = new Task();
         task.setId(1L);
-        when(taskRepository.findAllByOrderByTaskOrderAsc()).thenReturn(List.of(task));
+        when(taskRepository.findAllByArchivedFalseOrderByTaskOrderAsc()).thenReturn(List.of(task));
 
         List<Task> result = taskService.findAll();
 
@@ -47,9 +52,23 @@ class TaskServiceTest {
     }
 
     @Test
-    void create_savesAndReturnsTask() {
+    void findArchived_returnsArchivedTasksOrderedByTaskOrder() {
+        Task task = new Task();
+        task.setId(1L);
+        task.setArchived(true);
+        when(taskRepository.findAllByArchivedTrueOrderByTaskOrderAsc()).thenReturn(List.of(task));
+
+        List<Task> result = taskService.findArchived();
+
+        assertThat(result).containsExactly(task);
+    }
+
+    @Test
+    void create_savesAndReturnsTask_whenListExists() {
         Task task = new Task();
         task.setTitle("New task");
+        task.setListId(1L);
+        when(taskListRepository.existsById(1L)).thenReturn(true);
         when(taskRepository.save(task)).thenReturn(task);
 
         Task result = taskService.create(task);
@@ -59,31 +78,47 @@ class TaskServiceTest {
     }
 
     @Test
-    void update_appliesDtoFieldsAndSaves_whenTaskExists() {
+    void create_throwsEntityNotFoundException_whenListDoesNotExist() {
+        Task task = new Task();
+        task.setListId(99L);
+        when(taskListRepository.existsById(99L)).thenReturn(false);
+
+        assertThatThrownBy(() -> taskService.create(task))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("99");
+
+        verify(taskRepository, never()).save(any());
+    }
+
+    @Test
+    void update_appliesDtoFieldsAndSaves_whenTaskAndListExist() {
         Task existing = new Task();
         existing.setId(1L);
         existing.setTitle("Old title");
-        existing.setStatus(TaskStatus.A_FAZER);
+        existing.setListId(1L);
         existing.setTaskOrder(0);
 
         LocalDate dueDate = LocalDate.of(2026, 8, 1);
-        TaskRequestDTO dto = new TaskRequestDTO("New title", "New description", TaskStatus.CONCLUIDA, 3, dueDate);
+        TaskRequestDTO dto =
+                new TaskRequestDTO("New title", "New description", 3L, 3, dueDate, "#0079bf");
 
         when(taskRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(taskListRepository.existsById(3L)).thenReturn(true);
         when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Task result = taskService.update(1L, dto);
 
         assertThat(result.getTitle()).isEqualTo("New title");
         assertThat(result.getDescription()).isEqualTo("New description");
-        assertThat(result.getStatus()).isEqualTo(TaskStatus.CONCLUIDA);
+        assertThat(result.getListId()).isEqualTo(3L);
         assertThat(result.getTaskOrder()).isEqualTo(3);
         assertThat(result.getDueDate()).isEqualTo(dueDate);
+        assertThat(result.getCoverColor()).isEqualTo("#0079bf");
     }
 
     @Test
     void update_throwsEntityNotFoundException_whenTaskDoesNotExist() {
-        TaskRequestDTO dto = new TaskRequestDTO("Title", "Description", TaskStatus.A_FAZER, 0, null);
+        TaskRequestDTO dto = new TaskRequestDTO("Title", "Description", 1L, 0, null, null);
         when(taskRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> taskService.update(99L, dto))
@@ -91,6 +126,90 @@ class TaskServiceTest {
                 .hasMessageContaining("99");
 
         verify(taskRepository, never()).save(any());
+    }
+
+    @Test
+    void update_throwsEntityNotFoundException_whenListDoesNotExist() {
+        Task existing = new Task();
+        existing.setId(1L);
+        existing.setListId(1L);
+        TaskRequestDTO dto = new TaskRequestDTO("Title", "Description", 99L, 0, null, null);
+
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(taskListRepository.existsById(99L)).thenReturn(false);
+
+        assertThatThrownBy(() -> taskService.update(1L, dto))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("99");
+
+        verify(taskRepository, never()).save(any());
+    }
+
+    @Test
+    void archive_setsArchivedTrueAndSaves_whenTaskExists() {
+        Task task = new Task();
+        task.setId(1L);
+        task.setArchived(false);
+
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Task result = taskService.archive(1L);
+
+        assertThat(result.isArchived()).isTrue();
+    }
+
+    @Test
+    void archive_throwsEntityNotFoundException_whenTaskDoesNotExist() {
+        when(taskRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> taskService.archive(99L))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("99");
+    }
+
+    @Test
+    void restore_setsArchivedFalse_whenParentListIsNotArchived() {
+        Task task = new Task();
+        task.setId(1L);
+        task.setListId(1L);
+        task.setArchived(true);
+
+        TaskList list = new TaskList();
+        list.setId(1L);
+        list.setArchived(false);
+
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
+        when(taskListRepository.findById(1L)).thenReturn(Optional.of(list));
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Task result = taskService.restore(1L);
+
+        assertThat(result.isArchived()).isFalse();
+        verify(taskListRepository, never()).save(any());
+    }
+
+    @Test
+    void restore_alsoRestoresParentList_whenParentListIsArchived() {
+        Task task = new Task();
+        task.setId(1L);
+        task.setListId(1L);
+        task.setArchived(true);
+
+        TaskList list = new TaskList();
+        list.setId(1L);
+        list.setArchived(true);
+
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
+        when(taskListRepository.findById(1L)).thenReturn(Optional.of(list));
+        when(taskListRepository.save(any(TaskList.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Task result = taskService.restore(1L);
+
+        assertThat(result.isArchived()).isFalse();
+        assertThat(list.isArchived()).isFalse();
+        verify(taskListRepository).save(list);
     }
 
     @Test
