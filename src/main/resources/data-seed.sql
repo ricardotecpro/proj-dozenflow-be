@@ -2,7 +2,8 @@
 -- the `seed` profile is active (see application-seed.properties) — never
 -- runs during tests or a plain `dev` boot, so it can't interfere with
 -- TaskControllerTest#getAllTasks_returnsEmptyList_whenNoTasksExist.
--- Extend this file as new tables (attachments) are added in later phases.
+-- The card-features migrations end at V6 (attachments) — nothing left to
+-- extend here for now.
 --
 -- due_date uses relative offsets from CURRENT_DATE so the seed always
 -- exercises overdue (past), due-soon (next 2 days) and future states,
@@ -49,3 +50,11 @@ INSERT INTO comments (task_id, body, created_at) VALUES
     (1, 'Cliente pediu pra priorizar isso — combinei entrega até sexta.', DATEADD('DAY', -1, CURRENT_TIMESTAMP)),
     (3, 'Cenário de sucesso já está passando localmente.', DATEADD('HOUR', -3, CURRENT_TIMESTAMP)),
     (3, 'Faltam os cenários de erro ainda.', DATEADD('HOUR', -1, CURRENT_TIMESTAMP));
+
+-- One small text attachment for visual QA of the attachment count badge
+-- and download flow. Bytes are the UTF-8 hex encoding of:
+-- "Notas da reunião com o cliente sobre a proposta."
+INSERT INTO attachments (task_id, file_name, content_type, size_bytes, data, created_at) VALUES
+    (1, 'notas-reuniao.txt', 'text/plain', 49,
+     X'4e6f746173206461207265756e69c3a36f20636f6d206f20636c69656e746520736f62726520612070726f706f7374612e',
+     DATEADD('DAY', -1, CURRENT_TIMESTAMP));

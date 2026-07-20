@@ -38,6 +38,9 @@ class TaskControllerTest {
     @Autowired
     private ChecklistItemRepository checklistItemRepository;
 
+    @Autowired
+    private com.dozenflow.be.attachment.AttachmentRepository attachmentRepository;
+
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -235,5 +238,31 @@ class TaskControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].checklistTotal").value(2))
                 .andExpect(jsonPath("$[0].checklistDone").value(1));
+    }
+
+    @Test
+    void getTask_includesAttachmentCountFromFormula() throws Exception {
+        Task task = new Task();
+        task.setTitle("Task with attachment");
+        task.setStatus(TaskStatus.A_FAZER);
+        task = taskRepository.save(task);
+
+        com.dozenflow.be.attachment.Attachment attachment = new com.dozenflow.be.attachment.Attachment();
+        attachment.setTask(task);
+        attachment.setFileName("mockup.png");
+        attachment.setContentType("image/png");
+        attachment.setSizeBytes(10);
+        attachment.setData("fake-bytes".getBytes());
+        attachmentRepository.save(attachment);
+
+        // Same identity-map staleness reasoning as the checklist test above
+        // applies to @Formula fields: they're computed at load time, so a
+        // cached instance won't reflect rows inserted after it was loaded.
+        entityManager.flush();
+        entityManager.clear();
+
+        mockMvc.perform(get("/api/tasks"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].attachmentCount").value(1));
     }
 }

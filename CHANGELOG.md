@@ -8,6 +8,19 @@ e este projeto adere a [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ## [Unreleased]
 
 ### Added
+- Anexos nas tarefas: upload/listagem/download/exclusão de arquivo por
+  tarefa via `/api/tasks/{taskId}/attachments` (`V6__create_attachments.sql`).
+  Decisão de arquitetura (confirmada com o usuário): arquivo guardado como
+  blob no próprio banco (`bytea`, coluna `data`), não em disco nem em
+  storage externo — evita o problema do disco efêmero do Render (some a
+  cada redeploy) sem precisar de conta/credencial de serviço novo. Limite
+  de 5MB por arquivo e allowlist de `content-type` (imagens comuns, PDF,
+  texto, Word/Excel). A listagem usa uma projeção do Spring Data que
+  exclui a coluna `data` — nunca carrega os bytes só pra mostrar nomes de
+  arquivo. `TaskResponseDTO` ganha `attachmentCount`, mas ao contrário de
+  labels/checklist/comentários (que usam uma coleção JPA `EAGER`+
+  `SUBSELECT`), aqui uso `@Formula` (subquery `COUNT` correlacionada) —
+  uma coleção seria carregar todo o blob de cada tarefa só pra contar.
 - Comentários nas tarefas: adicionar/listar/excluir comentários por tarefa
   via `/api/tasks/{taskId}/comments` (`V5__create_comments.sql`). Sem
   edição (só criar e excluir) e sem dono/autor — consistente com o modelo

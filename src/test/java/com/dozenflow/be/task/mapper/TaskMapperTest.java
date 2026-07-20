@@ -56,6 +56,7 @@ class TaskMapperTest {
         assertThat(dto.checklistTotal()).isZero();
         assertThat(dto.checklistDone()).isZero();
         assertThat(dto.commentCount()).isZero();
+        assertThat(dto.attachmentCount()).isZero();
     }
 
     @Test

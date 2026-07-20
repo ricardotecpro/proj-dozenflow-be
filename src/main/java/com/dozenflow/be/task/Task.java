@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.Formula;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -76,5 +77,15 @@ public class Task {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private List<Comment> comments = new ArrayList<>();
+
+    // Attachments can hold up to 5MB of bytes each, so — unlike labels/
+    // checklistItems/comments above — loading them as an entity collection
+    // just to count them would pull megabytes of blob data into memory on
+    // every board fetch. A correlated-subquery formula gets the count in
+    // the same query as the rest of the row, without ever touching
+    // Attachment.data. Read-only: Hibernate excludes @Formula fields from
+    // INSERT/UPDATE automatically.
+    @Formula("(SELECT COUNT(*) FROM attachments a WHERE a.task_id = id)")
+    private int attachmentCount;
 
 }
