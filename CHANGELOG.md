@@ -134,6 +134,14 @@ e este projeto adere a [Versionamento Semântico](https://semver.org/lang/pt-BR/
   banco, fazendo a lista "voltar" a aparecer como ativa.
 - `TUTORIAL-BACKEND.md` corrigido: mencionava MySQL como banco de produção,
   mas o projeto usa PostgreSQL.
+- Auto-deploy do Render não disparava em push pro GitHub (só o deploy manual
+  funcionava): o app "Render" instalado no GitHub estava com "Repository
+  access" limitado a `proj-controle-de-gastos-01` — nem `proj-dozenflow-be`
+  nem `proj-dozenflow-fe` estavam na lista, então o GitHub nunca enviava o
+  webhook de push pro Render (o deploy manual usa outra credencial, por
+  isso continuava funcionando e mascarava o problema). Corrigido adicionando
+  os dois repositórios em `github.com/settings/installations` → app Render
+  → Repository access.
 
 ### Known issues
 - Cold start no plano free do Render: a primeira requisição após um período
