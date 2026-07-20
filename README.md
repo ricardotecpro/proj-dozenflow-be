@@ -15,6 +15,12 @@ frontend Angular vive em [`proj-dozenflow-fe`](https://github.com/ricardotecpro/
 ## Pré-requisitos
 
 - JDK 21+ (o projeto inclui um `.tool-versions` — se você usa [asdf](https://asdf-vm.com/), `asdf install` resolve isso automaticamente)
+  - Setup rápido com asdf (caso ainda não tenha o plugin `java`):
+    ```bash
+    asdf plugin add java
+    asdf install java openjdk-21
+    asdf local java openjdk-21  # já feito neste repo via .tool-versions
+    ```
 - Maven (ou use o wrapper `./mvnw` incluído, não requer instalação)
 
 ## Como rodar (desenvolvimento)

@@ -120,6 +120,50 @@ class AttachmentControllerTest {
     }
 
     @Test
+    void view_returnsFileBytesInline() throws Exception {
+        Task task = createTask();
+        Attachment attachment = new Attachment();
+        attachment.setTask(task);
+        attachment.setFileName("mockup.png");
+        attachment.setContentType("image/png");
+        attachment.setSizeBytes(10);
+        attachment.setData("fake-bytes".getBytes());
+        attachment = attachmentRepository.save(attachment);
+
+        mockMvc.perform(get("/api/tasks/{taskId}/attachments/{attachmentId}/view", task.getId(), attachment.getId()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "image/png"))
+                .andExpect(header().string(
+                        "Content-Disposition",
+                        "inline; filename=\"=?UTF-8?Q?mockup.png?=\"; filename*=UTF-8''mockup.png"))
+                .andExpect(content().bytes("fake-bytes".getBytes()));
+    }
+
+    @Test
+    void view_returnsNotFound_whenAttachmentDoesNotExist() throws Exception {
+        Task task = createTask();
+
+        mockMvc.perform(get("/api/tasks/{taskId}/attachments/{attachmentId}/view", task.getId(), 999_999L))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void view_returnsNotFound_whenAttachmentBelongsToAnotherTask() throws Exception {
+        Task task = createTask();
+        Task otherTask = createTask();
+        Attachment attachment = new Attachment();
+        attachment.setTask(otherTask);
+        attachment.setFileName("mockup.png");
+        attachment.setContentType("image/png");
+        attachment.setSizeBytes(10);
+        attachment.setData("fake-bytes".getBytes());
+        attachment = attachmentRepository.save(attachment);
+
+        mockMvc.perform(get("/api/tasks/{taskId}/attachments/{attachmentId}/view", task.getId(), attachment.getId()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void delete_removesExistingAttachment() throws Exception {
         Task task = createTask();
         Attachment attachment = new Attachment();

@@ -1,5 +1,7 @@
 package com.dozenflow.be.task;
 
+import com.dozenflow.be.attachment.Attachment;
+import com.dozenflow.be.attachment.AttachmentRepository;
 import com.dozenflow.be.label.Label;
 import com.dozenflow.be.label.LabelRepository;
 import com.dozenflow.be.list.TaskList;
@@ -33,11 +35,14 @@ class TaskServiceTest {
     @Mock
     private TaskListRepository taskListRepository;
 
+    @Mock
+    private AttachmentRepository attachmentRepository;
+
     private TaskService taskService;
 
     @BeforeEach
     void setUp() {
-        taskService = new TaskService(taskRepository, labelRepository, taskListRepository);
+        taskService = new TaskService(taskRepository, labelRepository, taskListRepository, attachmentRepository);
     }
 
     @Test
@@ -100,7 +105,7 @@ class TaskServiceTest {
 
         LocalDate dueDate = LocalDate.of(2026, 8, 1);
         TaskRequestDTO dto =
-                new TaskRequestDTO("New title", "New description", 3L, 3, dueDate, "#0079bf");
+                new TaskRequestDTO("New title", "New description", 3L, 3, dueDate, "#0079bf", "FULL", null);
 
         when(taskRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(taskListRepository.existsById(3L)).thenReturn(true);
@@ -114,11 +119,12 @@ class TaskServiceTest {
         assertThat(result.getTaskOrder()).isEqualTo(3);
         assertThat(result.getDueDate()).isEqualTo(dueDate);
         assertThat(result.getCoverColor()).isEqualTo("#0079bf");
+        assertThat(result.getCoverSize()).isEqualTo("FULL");
     }
 
     @Test
     void update_throwsEntityNotFoundException_whenTaskDoesNotExist() {
-        TaskRequestDTO dto = new TaskRequestDTO("Title", "Description", 1L, 0, null, null);
+        TaskRequestDTO dto = new TaskRequestDTO("Title", "Description", 1L, 0, null, null, null, null);
         when(taskRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> taskService.update(99L, dto))
@@ -133,7 +139,7 @@ class TaskServiceTest {
         Task existing = new Task();
         existing.setId(1L);
         existing.setListId(1L);
-        TaskRequestDTO dto = new TaskRequestDTO("Title", "Description", 99L, 0, null, null);
+        TaskRequestDTO dto = new TaskRequestDTO("Title", "Description", 99L, 0, null, null, null, null);
 
         when(taskRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(taskListRepository.existsById(99L)).thenReturn(false);
@@ -141,6 +147,57 @@ class TaskServiceTest {
         assertThatThrownBy(() -> taskService.update(1L, dto))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("99");
+
+        verify(taskRepository, never()).save(any());
+    }
+
+    @Test
+    void update_setsCoverAttachmentAndClearsCoverColor_whenAttachmentBelongsToTask() {
+        Task existing = new Task();
+        existing.setId(1L);
+        existing.setListId(1L);
+        existing.setCoverColor("#0079bf");
+
+        Task owningTask = new Task();
+        owningTask.setId(1L);
+        Attachment attachment = new Attachment();
+        attachment.setId(5L);
+        attachment.setTask(owningTask);
+
+        TaskRequestDTO dto = new TaskRequestDTO("Title", "Description", 1L, 0, null, null, null, 5L);
+
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(taskListRepository.existsById(1L)).thenReturn(true);
+        when(attachmentRepository.findById(5L)).thenReturn(Optional.of(attachment));
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Task result = taskService.update(1L, dto);
+
+        assertThat(result.getCoverAttachmentId()).isEqualTo(5L);
+        assertThat(result.getCoverColor()).isNull();
+    }
+
+    @Test
+    void update_throwsEntityNotFoundException_whenCoverAttachmentBelongsToAnotherTask() {
+        Task existing = new Task();
+        existing.setId(1L);
+        existing.setListId(1L);
+
+        Task otherTask = new Task();
+        otherTask.setId(2L);
+        Attachment attachment = new Attachment();
+        attachment.setId(5L);
+        attachment.setTask(otherTask);
+
+        TaskRequestDTO dto = new TaskRequestDTO("Title", "Description", 1L, 0, null, null, null, 5L);
+
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(taskListRepository.existsById(1L)).thenReturn(true);
+        when(attachmentRepository.findById(5L)).thenReturn(Optional.of(attachment));
+
+        assertThatThrownBy(() -> taskService.update(1L, dto))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("5");
 
         verify(taskRepository, never()).save(any());
     }

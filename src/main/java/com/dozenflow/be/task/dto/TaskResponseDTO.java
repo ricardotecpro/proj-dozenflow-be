@@ -24,6 +24,10 @@ public record TaskResponseDTO(
         LocalDate dueDate,
         @Schema(description = "Optional cover color for the card, as a hex string", example = "#0079bf")
         String coverColor,
+        @Schema(description = "Optional cover size for the card (\"HEADER\" or \"FULL\")", example = "HEADER")
+        String coverSize,
+        @Schema(description = "Optional id of an attachment of this task used as its cover image, instead of coverColor", example = "1")
+        Long coverAttachmentId,
         @Schema(description = "Labels attached to this task")
         List<LabelResponseDTO> labels,
         @Schema(description = "Total number of checklist items", example = "5")

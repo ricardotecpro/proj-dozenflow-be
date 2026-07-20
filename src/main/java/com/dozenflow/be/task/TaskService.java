@@ -1,5 +1,7 @@
 package com.dozenflow.be.task;
 
+import com.dozenflow.be.attachment.Attachment;
+import com.dozenflow.be.attachment.AttachmentRepository;
 import com.dozenflow.be.label.Label;
 import com.dozenflow.be.label.LabelRepository;
 import com.dozenflow.be.list.TaskList;
@@ -17,12 +19,14 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final LabelRepository labelRepository;
     private final TaskListRepository taskListRepository;
+    private final AttachmentRepository attachmentRepository;
 
     public TaskService(TaskRepository taskRepository, LabelRepository labelRepository,
-                        TaskListRepository taskListRepository) {
+                        TaskListRepository taskListRepository, AttachmentRepository attachmentRepository) {
         this.taskRepository = taskRepository;
         this.labelRepository = labelRepository;
         this.taskListRepository = taskListRepository;
+        this.attachmentRepository = attachmentRepository;
     }
 
     public List<Task> findAll() {
@@ -50,7 +54,15 @@ public class TaskService {
         existingTask.setListId(dto.listId());
         existingTask.setTaskOrder(dto.taskOrder());
         existingTask.setDueDate(dto.dueDate());
-        existingTask.setCoverColor(dto.coverColor());
+        existingTask.setCoverSize(dto.coverSize());
+        if (dto.coverAttachmentId() != null) {
+            requireOwnedAttachment(id, dto.coverAttachmentId());
+            existingTask.setCoverAttachmentId(dto.coverAttachmentId());
+            existingTask.setCoverColor(null);
+        } else {
+            existingTask.setCoverColor(dto.coverColor());
+            existingTask.setCoverAttachmentId(null);
+        }
 
         return taskRepository.save(existingTask);
     }
@@ -113,6 +125,14 @@ public class TaskService {
     private void requireListExists(Long listId) {
         if (!taskListRepository.existsById(listId)) {
             throw new EntityNotFoundException("TaskList not found with id: " + listId);
+        }
+    }
+
+    private void requireOwnedAttachment(Long taskId, Long attachmentId) {
+        Attachment attachment = attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new EntityNotFoundException("Attachment not found with id: " + attachmentId));
+        if (!attachment.getTask().getId().equals(taskId)) {
+            throw new EntityNotFoundException("Attachment not found with id: " + attachmentId);
         }
     }
 }

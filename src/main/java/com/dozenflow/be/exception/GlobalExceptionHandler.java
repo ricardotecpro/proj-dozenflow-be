@@ -1,6 +1,7 @@
 package com.dozenflow.be.exception;
 
 import com.dozenflow.be.attachment.InvalidAttachmentException;
+import com.dozenflow.be.boardsettings.InvalidBackgroundImageException;
 import com.dozenflow.be.list.LastActiveListException;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
@@ -42,6 +43,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(InvalidAttachmentException.class)
     protected ResponseEntity<Object> handleInvalidAttachment(InvalidAttachmentException ex) {
+        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
+        return buildResponseEntity(apiError, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Handles background image upload validation failures (empty file, too large, or an unsupported type).
+     */
+    @ExceptionHandler(InvalidBackgroundImageException.class)
+    protected ResponseEntity<Object> handleInvalidBackgroundImage(InvalidBackgroundImageException ex) {
         ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
         return buildResponseEntity(apiError, HttpStatus.BAD_REQUEST);
     }

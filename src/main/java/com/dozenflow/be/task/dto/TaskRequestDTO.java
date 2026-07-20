@@ -22,5 +22,9 @@ public record TaskRequestDTO(
         @Schema(description = "Optional due date for the task", example = "2026-08-01")
         LocalDate dueDate,
         @Schema(description = "Optional cover color for the card, as a hex string", example = "#0079bf")
-        String coverColor
+        String coverColor,
+        @Schema(description = "Optional cover size for the card (\"HEADER\" or \"FULL\")", example = "HEADER")
+        String coverSize,
+        @Schema(description = "Optional id of an attachment of this task to use as its cover image, instead of coverColor", example = "1")
+        Long coverAttachmentId
 ) {}

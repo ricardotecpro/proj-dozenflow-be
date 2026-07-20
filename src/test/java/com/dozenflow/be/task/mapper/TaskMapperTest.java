@@ -21,7 +21,7 @@ class TaskMapperTest {
     void toEntity_mapsAllFieldsFromRequestDto() {
         LocalDate dueDate = LocalDate.of(2026, 8, 1);
         TaskRequestDTO dto =
-                new TaskRequestDTO("Title", "Description", 2L, 2, dueDate, "#0079bf");
+                new TaskRequestDTO("Title", "Description", 2L, 2, dueDate, "#0079bf", "FULL", null);
 
         Task task = mapper.toEntity(dto);
 
@@ -32,6 +32,7 @@ class TaskMapperTest {
         assertThat(task.getTaskOrder()).isEqualTo(2);
         assertThat(task.getDueDate()).isEqualTo(dueDate);
         assertThat(task.getCoverColor()).isEqualTo("#0079bf");
+        assertThat(task.getCoverSize()).isEqualTo("FULL");
     }
 
     @Test
@@ -46,6 +47,8 @@ class TaskMapperTest {
         task.setArchived(true);
         task.setDueDate(dueDate);
         task.setCoverColor("#0079bf");
+        task.setCoverSize("FULL");
+        task.setCoverAttachmentId(7L);
 
         TaskResponseDTO dto = mapper.toResponseDTO(task);
 
@@ -57,6 +60,8 @@ class TaskMapperTest {
         assertThat(dto.archived()).isTrue();
         assertThat(dto.dueDate()).isEqualTo(dueDate);
         assertThat(dto.coverColor()).isEqualTo("#0079bf");
+        assertThat(dto.coverSize()).isEqualTo("FULL");
+        assertThat(dto.coverAttachmentId()).isEqualTo(7L);
         assertThat(dto.labels()).isEmpty();
         assertThat(dto.checklistTotal()).isZero();
         assertThat(dto.checklistDone()).isZero();

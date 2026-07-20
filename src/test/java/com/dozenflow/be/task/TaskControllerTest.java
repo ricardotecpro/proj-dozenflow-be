@@ -149,6 +149,67 @@ class TaskControllerTest {
     }
 
     @Test
+    void updateTask_setsCoverAttachmentAndClearsCoverColor_whenAttachmentBelongsToTask() throws Exception {
+        Task existing = new Task();
+        existing.setTitle("Original");
+        existing.setListId(A_FAZER_LIST_ID);
+        existing.setTaskOrder(0);
+        existing.setCoverColor("#0079bf");
+        existing = taskRepository.save(existing);
+
+        com.dozenflow.be.attachment.Attachment attachment = new com.dozenflow.be.attachment.Attachment();
+        attachment.setTask(existing);
+        attachment.setFileName("cover.png");
+        attachment.setContentType("image/png");
+        attachment.setSizeBytes(10);
+        attachment.setData("fake-bytes".getBytes());
+        attachment = attachmentRepository.save(attachment);
+
+        String payload = """
+                {"title":"Original","description":"","listId":%d,"taskOrder":0,"coverAttachmentId":%d}
+                """.formatted(A_FAZER_LIST_ID, attachment.getId());
+
+        mockMvc.perform(put("/api/tasks/{id}", existing.getId())
+                        .contentType("application/json")
+                        .content(payload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.coverAttachmentId").value(attachment.getId()))
+                .andExpect(jsonPath("$.coverColor").value(org.hamcrest.Matchers.nullValue()));
+    }
+
+    @Test
+    void updateTask_returnsNotFound_whenCoverAttachmentBelongsToAnotherTask() throws Exception {
+        Task existing = new Task();
+        existing.setTitle("Original");
+        existing.setListId(A_FAZER_LIST_ID);
+        existing.setTaskOrder(0);
+        existing = taskRepository.save(existing);
+
+        Task otherTask = new Task();
+        otherTask.setTitle("Other task");
+        otherTask.setListId(A_FAZER_LIST_ID);
+        otherTask.setTaskOrder(0);
+        otherTask = taskRepository.save(otherTask);
+
+        com.dozenflow.be.attachment.Attachment attachment = new com.dozenflow.be.attachment.Attachment();
+        attachment.setTask(otherTask);
+        attachment.setFileName("cover.png");
+        attachment.setContentType("image/png");
+        attachment.setSizeBytes(10);
+        attachment.setData("fake-bytes".getBytes());
+        attachment = attachmentRepository.save(attachment);
+
+        String payload = """
+                {"title":"Original","description":"","listId":%d,"taskOrder":0,"coverAttachmentId":%d}
+                """.formatted(A_FAZER_LIST_ID, attachment.getId());
+
+        mockMvc.perform(put("/api/tasks/{id}", existing.getId())
+                        .contentType("application/json")
+                        .content(payload))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void updateTask_returnsNotFound_whenTaskDoesNotExist() throws Exception {
         String payload = """
                 {"title":"Updated","description":"Now in progress","listId":%d,"taskOrder":2}

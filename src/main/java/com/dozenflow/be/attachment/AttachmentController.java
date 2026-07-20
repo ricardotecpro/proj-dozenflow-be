@@ -67,6 +67,23 @@ public class AttachmentController {
                 .body(attachment.getData());
     }
 
+    @GetMapping("/{attachmentId}/view")
+    @Operation(summary = "View an attachment's file bytes inline", description = "Same bytes as /download, but served inline (not forced as a file save) and cacheable, so it can be used directly as an <img src> or CSS background-image — e.g. for card covers.")
+    @ApiResponse(responseCode = "200", description = "File stream")
+    @ApiResponse(responseCode = "404", description = "Task or attachment not found")
+    public ResponseEntity<byte[]> view(@PathVariable Long taskId, @PathVariable Long attachmentId) {
+        Attachment attachment = attachmentService.getForDownload(taskId, attachmentId);
+        ContentDisposition disposition = ContentDisposition.inline()
+                .filename(attachment.getFileName(), StandardCharsets.UTF_8)
+                .build();
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(attachment.getContentType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+                .header(HttpHeaders.CACHE_CONTROL, "private, max-age=3600")
+                .body(attachment.getData());
+    }
+
     @DeleteMapping("/{attachmentId}")
     @Operation(summary = "Delete an attachment")
     @ApiResponse(responseCode = "204", description = "Attachment deleted successfully")

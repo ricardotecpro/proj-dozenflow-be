@@ -47,6 +47,17 @@ public class Task {
     @Column(name = "cover_color")
     private String coverColor;
 
+    // Tamanho da capa ("HEADER" ou "FULL"), estilo Trello. Nulo = sem preferência definida.
+    @Column(name = "cover_size")
+    private String coverSize;
+
+    // Id do anexo usado como capa, alternativa a coverColor (mutuamente
+    // exclusivos, ver TaskService.update). Long simples (sem @ManyToOne) para
+    // não acoplar a entidade Task a Attachment; a integridade referencial
+    // (ON DELETE SET NULL) fica a cargo da FK no banco.
+    @Column(name = "cover_attachment_id")
+    private Long coverAttachmentId;
+
     // EAGER (not the JPA default LAZY) because open-in-view is disabled:
     // TaskMapper reads this collection from the controller layer, after the
     // service's transaction/session has already closed. FetchMode.SUBSELECT

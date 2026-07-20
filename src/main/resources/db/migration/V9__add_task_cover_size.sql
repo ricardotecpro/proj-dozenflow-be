@@ -1,0 +1,1 @@
+ALTER TABLE tasks ADD COLUMN cover_size VARCHAR(10);
